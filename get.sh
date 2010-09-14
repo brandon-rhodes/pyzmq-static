@@ -18,3 +18,12 @@ cd ..
 tar xvfz tmp/util-linux-ng-2.18.tar.gz
 tar xvfz tmp/zeromq-2.0.9.tar.gz
 tar xvfz tmp/pyzmq-2.0.7.tar.gz
+
+# Segregate out the UUID sources by operating system.
+rm -rf uuid
+mkdir uuid
+cp util-linux-ng-2.18/shlibs/uuid/src/*.c uuid
+
+mkdir uuid-nt
+cp util-linux-ng-2.18/shlibs/uuid/src/uuid.sym uuid-nt
+mv uuid/gen_uuid_nt.c uuid-nt
