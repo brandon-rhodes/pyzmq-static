@@ -7,9 +7,11 @@ include_dirs = ['include']
 extra_link_args = []
 
 if hasattr(sys, 'getwindowsversion'):
-    sources.extend(glob('src_nt/*.c'))
-    include_dirs.insert(0, 'include_nt')  # prepend so its files are used first
+    include_dirs.append('include_nt')
     extra_link_args.append('-Wl,--version-script=src_nt/uuid.sym')
+else:
+    include_dirs.append('include_linux')
+    sources.extend(glob('src_uuid/*.c'))
 
 ext = Extension('zmq._zmq', sources, include_dirs=include_dirs,
                 extra_link_args=extra_link_args)

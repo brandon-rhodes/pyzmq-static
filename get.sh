@@ -45,4 +45,4 @@ cp util-linux-ng-2.18/shlibs/uuid/src/*.h \
 cp -r pyzmq-2.0.7/zmq/*.py pyzmq-2.0.7/zmq/eventloop pyzmq-2.0.7/zmq/tests zmq
 
 # Remove the source trees.
-rm -rf pyzmq-2.0.7 util-linux-ng-2.18 zeromq-2.0.9
+#rm -rf pyzmq-2.0.7 util-linux-ng-2.18 zeromq-2.0.9
