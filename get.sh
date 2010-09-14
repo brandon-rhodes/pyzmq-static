@@ -23,8 +23,11 @@ tar xvfz tmp/pyzmq-2.0.7.tar.gz
 (cd zeromq-2.0.9; ./configure)
 
 # Copy the files we need into our version-controlled directories.
-rm -rf include src src_nt
-mkdir include src src_nt
+rm -rf include licenses src src_nt zmq
+mkdir include licenses src src_nt zmq
+
+cp zeromq-2.0.9/COPYING* \
+   licenses
 
 cp util-linux-ng-2.18/shlibs/uuid/src/*.c \
    zeromq-2.0.9/src/*.cpp \
@@ -38,3 +41,8 @@ cp util-linux-ng-2.18/shlibs/uuid/src/*.h \
    zeromq-2.0.9/src/*.h* \
    pyzmq-2.0.7/zmq/*.h \
    include
+
+cp -r pyzmq-2.0.7/zmq/*.py pyzmq-2.0.7/zmq/eventloop pyzmq-2.0.7/zmq/tests zmq
+
+# Remove the source trees.
+rm -rf pyzmq-2.0.7 util-linux-ng-2.18 zeromq-2.0.9
