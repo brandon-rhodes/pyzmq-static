@@ -19,11 +19,22 @@ tar xvfz tmp/util-linux-ng-2.18.tar.gz
 tar xvfz tmp/zeromq-2.0.9.tar.gz
 tar xvfz tmp/pyzmq-2.0.7.tar.gz
 
-# Segregate out the UUID sources by operating system.
-rm -rf uuid
-mkdir uuid
-cp util-linux-ng-2.18/shlibs/uuid/src/*.c uuid
+# Generate platform.hpp from platform.hpp.in
+(cd zeromq-2.0.9; ./configure)
 
-mkdir uuid-nt
-cp util-linux-ng-2.18/shlibs/uuid/src/uuid.sym uuid-nt
-mv uuid/gen_uuid_nt.c uuid-nt
+# Copy the files we need into our version-controlled directories.
+rm -rf include src src_nt
+mkdir include src src_nt
+
+cp util-linux-ng-2.18/shlibs/uuid/src/*.c \
+   zeromq-2.0.9/src/*.cpp \
+   pyzmq-2.0.7/zmq/_zmq.c \
+   src
+mv src/gen_uuid_nt.c src_nt
+cp util-linux-ng-2.18/shlibs/uuid/src/uuid.sym src_nt
+
+cp util-linux-ng-2.18/shlibs/uuid/src/*.h \
+   zeromq-2.0.9/include/*.h* \
+   zeromq-2.0.9/src/*.h* \
+   pyzmq-2.0.7/zmq/*.h \
+   include

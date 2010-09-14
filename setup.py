@@ -3,27 +3,16 @@ import sys
 from distutils.core import setup, Extension
 from glob import glob
 
-def _(path):
-    return glob(os.path.join(*path.split('/')))
-
-sources = (
-    _('uuid/*.c') +
-    _('zeromq-2.0.9/src/*.cpp') +
-    _('pyzmq-2.0.7/zmq/_zmq.c')
-    )
-include_dirs = (
-    _('util-linux-ng-2.18/shlibs/uuid/src/') +
-    _('zeromq-2.0.9/include')
-    )
+sources = glob('src/*')
+include_dirs = ['include']
 extra_link_args = []
 
 if hasattr(sys, 'getwindowsversion'):
-    sources.extend(_('uuid-nt/*.c'))
-    extra_link_args.append(
-        '-Wl,--version-script=$(ul_libuuid_srcdir)/uuid.sym'
-        )
+    sources.extend(glob('src_nt/*.c'))
+    include_dirs.insert(0, 'include_nt')  # prepend so its files are used first
+    extra_link_args.append('-Wl,--version-script=src_nt/uuid.sym')
 
-ext = Extension('zmq._zmq', sources, include_dirs,
+ext = Extension('zmq._zmq', sources, include_dirs=include_dirs,
                 extra_link_args=extra_link_args)
 
 setup(name='pyzmq-static',
