@@ -19,30 +19,46 @@ tar xvfz tmp/util-linux-ng-2.18.tar.gz
 tar xvfz tmp/zeromq-2.0.9.tar.gz
 tar xvfz tmp/pyzmq-2.0.7.tar.gz
 
-# Generate platform.hpp from platform.hpp.in
-(cd zeromq-2.0.9; ./configure)
-
-# Copy the files we need into our version-controlled directories.
-rm -rf include licenses src src_nt zmq
-mkdir include licenses src src_nt zmq
+# Copy the files we need into our version-controlled directories.  (We
+# keep include_linux and include_darwin from one run to the next, since
+# we cannot replace their contents unless we are on that platform.)
+rm -rf include include_nt licenses src src_nt src_uuid zmq
+mkdir include include_nt licenses src src_nt src_uuid zmq
 
 cp zeromq-2.0.9/COPYING* \
    licenses
 
-cp util-linux-ng-2.18/shlibs/uuid/src/*.c \
-   zeromq-2.0.9/src/*.cpp \
+cp zeromq-2.0.9/src/*.cpp \
    pyzmq-2.0.7/zmq/_zmq.c \
    src
-mv src/gen_uuid_nt.c src_nt
-cp util-linux-ng-2.18/shlibs/uuid/src/uuid.sym src_nt
+cp util-linux-ng-2.18/shlibs/uuid/src/*.c \
+   src_uuid
+rm src_uuid/gen_uuid_nt.c
 
 cp util-linux-ng-2.18/shlibs/uuid/src/*.h \
    zeromq-2.0.9/include/*.h* \
    zeromq-2.0.9/src/*.h* \
    pyzmq-2.0.7/zmq/*.h \
    include
+rm include/platform.hpp
 
 cp -r pyzmq-2.0.7/zmq/*.py pyzmq-2.0.7/zmq/eventloop pyzmq-2.0.7/zmq/tests zmq
 
+# Generate platform.hpp from platform.hpp.in
+(cd zeromq-2.0.9; ./configure)
+case $(uname) in
+    Linux)
+        mkdir -p include_linux
+        cp zeromq-2.0.9/src/platform.hpp include_linux
+    ;;
+    Darwin)
+        mkdir -p include_darwin
+        cp zeromq-2.0.9/src/platform.hpp include_darwin
+    ;;
+esac
+
+# Or copy it for Windows
+cp zeromq-2.0.9/builds/msvc/platform.hpp include_nt
+
 # Remove the source trees.
-#rm -rf pyzmq-2.0.7 util-linux-ng-2.18 zeromq-2.0.9
+rm -rf pyzmq-2.0.7 util-linux-ng-2.18 zeromq-2.0.9
