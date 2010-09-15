@@ -1,12 +1,14 @@
 This package provides a statically-linked version
 of the ``zmq`` Python library,
 which is the official interface between Python
-and the startling shiny new ZeroMQ messaging library.
+and the `ZeroMQ`_ messaging library.
 The official distribution for the ``zmq`` library
 is called ``pyzmq`` here on PyPI,
 and is maintained by Brian E. Granger:
 
 http://pypi.python.org/pypi/pyzmq/
+
+.. _ZeroMQ: http://www.zeromq.org/
 
 This ``pyzmq-static`` distribution was created by Brandon Craig Rhodes
 after he became frustrated with having to install both ``libuuid-dev``
@@ -14,7 +16,9 @@ and ZeroMQ itself on every machine where he then wanted to install ``pyzmq``.
 Whether you use Linux or Windows,
 this package should download and compile with a quick ``pip`` ``install``
 assuming that you have the normal tools in place
-for building Python extension modules at all.
+for building Python extension modules at all
+(which are, specifically, the GNU C and C++ compilers for POSIX systems,
+and the free Microsoft Visual C++ 2008 Express for Windows machines).
 
 Warning
 -------

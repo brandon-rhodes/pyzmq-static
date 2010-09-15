@@ -1,7 +1,7 @@
+^MANIFEST$
 ^build$
+^dist$
 ^pyzmq-2.0.7$
-^uuid$
-^uuid-nt$
 ^util-linux-ng-2.18$
 ^tmp$
 ^zeromq-2.0.9$

@@ -10,8 +10,8 @@ if hasattr(sys, 'getwindowsversion'):
     libraries.extend([ 'rpcrt4', 'ws2_32' ])
     include_dirs.append('include_nt')
 else:
-    include_dirs.append('include_linux')
     sources.extend(glob('src_uuid/*.c'))
+    include_dirs.append('include_linux')
 
 ext = Extension('zmq._zmq', sources, libraries=libraries,
                 include_dirs=include_dirs)
@@ -19,7 +19,7 @@ ext = Extension('zmq._zmq', sources, libraries=libraries,
 setup(name='pyzmq-static',
       version='2.0.7a',
       description='Statically linked Python bindings for 0MQ',
-      long_description=open('README.rst').read(),
+      long_description=open('README.txt').read(),
       author='Brandon Craig Rhodes',
       author_email='brandon@rhodesmill.org',
       url='http://bitbucket.org/brandon/pyzmq-static',
