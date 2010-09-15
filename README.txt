@@ -1,20 +1,24 @@
 This package provides a statically-linked version
-of the ``zmq`` Python library,
+of the **zmq** Python library,
 which is the official interface between Python
-and the `ZeroMQ`_ messaging library.
-The official distribution for the ``zmq`` library
-is called ``pyzmq`` here on PyPI,
+and the ØMQ messaging library.
+You can find the exuberant ØMQ web site here:
+
+http://www.zeromq.org/
+
+The official distribution for the **zmq** library
+is called **pyzmq** here on PyPI,
 and is maintained by Brian E. Granger:
 
 http://pypi.python.org/pypi/pyzmq/
 
 .. _ZeroMQ: http://www.zeromq.org/
 
-This ``pyzmq-static`` distribution was created by Brandon Craig Rhodes
-after he became frustrated with having to install both ``libuuid-dev``
-and ZeroMQ itself on every machine where he then wanted to install ``pyzmq``.
+This **pyzmq-static** distribution was created by Brandon Craig Rhodes
+after he became frustrated with having to install both libuuid-dev
+and ZeroMQ itself on every machine where he then wanted to install **pyzmq**.
 Whether you use Linux or Windows,
-this package should download and compile with a quick ``pip`` ``install``
+this package should download and compile with a quick **pip** **install**
 assuming that you have the normal tools in place
 for building Python extension modules at all
 (which are, specifically, the GNU C and C++ compilers for POSIX systems,
@@ -23,21 +27,23 @@ and the free Microsoft Visual C++ 2008 Express for Windows machines).
 Warning
 -------
 
-This Python package is statically linked against ZeroMQ,
-which means that it carries its own copy of ZeroMQ around inside of it.
+This Python package is statically linked against ØMQ,
+which means that it carries its own copy of ØMQ around inside of it.
 
 If your Python program imports any other libraries or modules
-that themselves link against ZeroMQ,
+that themselves link against ØMQ,
 then they will find themselves talking to a different
 copy of the message queue libraries than your program does.
-The two copies of ZeroMQ might have different versions;
+The two copies of ØMQ might have different versions;
 they might lack shared copies of data structures
-that would be necessary to coordinate in-process queues;
+that would be necessary to coordinate in-process queues
+(though I think that ØMQ has avoided these);
 or they might break altogether,
 depending on how they and your operating system's dynamic linker
 decide to behave.
 
-But, this static version has always worked for me so far.
+But, really, what is the likelyhood of that?
+This static version has worked fine for me so far!
 
 Copying
 -------
@@ -55,3 +61,25 @@ pieces of software, which are as follows:
 So, okay, those are not very restrictive licensing terms.
 But still.
 See the source files themselves for more information.
+
+Development
+-----------
+
+The original source of **pyzmq-static** lives at Bitbucket:
+
+http://bitbucket.org/brandon/pyzmq-static
+
+You can report bugs and problems,
+which Bitbucket euphemistically calls "issues",
+here:
+
+http://bitbucket.org/brandon/pyzmq-static/issues
+
+The development tree is accompanied by a small *get.sh* shell script
+that re-fetches all of the original source distributions
+for ØMQ, pyzmq, and libuuid, and rebuilds the *include* and *src*
+directories using the original files.
+When new versions of these dependencies come out,
+we will update the *get.sh* script,
+tweak the result until it compiles cleanly under Linux and Windows,
+and release a new version of **pyzmq-static**.

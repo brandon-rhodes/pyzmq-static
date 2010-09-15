@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 from distutils.core import setup, Extension
 from glob import glob
@@ -18,8 +19,8 @@ ext = Extension('zmq._zmq', sources, libraries=libraries,
 
 setup(name='pyzmq-static',
       version='2.0.7a',
-      description='Statically linked Python bindings for 0MQ',
-      long_description=open('README.txt').read(),
+      description=u'Statically linked ØMQ / 0MQ / ZeroMQ for Python',
+      long_description=open('README.txt').read().decode('utf-8'),
       author='Brandon Craig Rhodes',
       author_email='brandon@rhodesmill.org',
       url='http://bitbucket.org/brandon/pyzmq-static',
