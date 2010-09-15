@@ -3,18 +3,18 @@ from distutils.core import setup, Extension
 from glob import glob
 
 sources = glob('src/*')
+libraries = []
 include_dirs = ['include']
-extra_link_args = []
 
 if hasattr(sys, 'getwindowsversion'):
+    libraries.extend([ 'rpcrt4', 'ws2_32' ])
     include_dirs.append('include_nt')
-    extra_link_args.append('-Wl,--version-script=src_nt/uuid.sym')
 else:
     include_dirs.append('include_linux')
     sources.extend(glob('src_uuid/*.c'))
 
-ext = Extension('zmq._zmq', sources, include_dirs=include_dirs,
-                extra_link_args=extra_link_args)
+ext = Extension('zmq._zmq', sources, libraries=libraries,
+                include_dirs=include_dirs)
 
 setup(name='pyzmq-static',
       version='2.0.7a',
