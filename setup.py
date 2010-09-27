@@ -21,7 +21,7 @@ ext = Extension('zmq._zmq', sources, libraries=libraries,
                 include_dirs=include_dirs)
 
 setup(name='pyzmq-static',
-      version='2.0.7a',
+      version='2.0.8',
       description=u'Statically linked ØMQ / 0MQ / ZeroMQ for Python',
       long_description=open('README.txt').read().decode('utf-8'),
       author='Brandon Craig Rhodes',
