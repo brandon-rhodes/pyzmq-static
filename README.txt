@@ -24,26 +24,20 @@ for building Python extension modules at all
 (which are, specifically, the GNU C and C++ compilers for POSIX systems,
 and the free Microsoft Visual C++ 2008 Express for Windows machines).
 
+Changelog
+---------
+
+| 2.0.8a — 2010-09-27— MacOS X support.
+| 2.0.7a — 2010-09-15— World debut!
+
 Warning
 -------
 
-This Python package is statically linked against ØMQ,
-which means that it carries its own copy of ØMQ around inside of it.
-
-If your Python program imports any other libraries or modules
+This Python package is statically linked against ØMQ:
+it carries its own copy of ØMQ around inside of it.
+If your Python program imports other libraries or modules
 that themselves link against ØMQ,
-then they will find themselves talking to a different
-copy of the message queue libraries than your program does.
-The two copies of ØMQ might have different versions;
-they might lack shared copies of data structures
-that would be necessary to coordinate in-process queues
-(though I think that ØMQ has avoided these);
-or they might break altogether,
-depending on how they and your operating system's dynamic linker
-decide to behave.
-
-But, really, what is the likelyhood of that?
-This static version has worked fine for me so far!
+then linking or runtime problems might arise.
 
 Copying
 -------
@@ -61,11 +55,13 @@ pieces of software, which are as follows:
 So, okay, those are not very restrictive licensing terms.
 But still.
 See the source files themselves for more information.
+And thanks to Jeff Garbers for helping me get the package
+working on MacOS X!
 
 Development
 -----------
 
-The original source of **pyzmq-static** lives at Bitbucket:
+The source of **pyzmq-static** lives at Bitbucket:
 
 http://bitbucket.org/brandon/pyzmq-static
 

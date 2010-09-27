@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import sys
 from distutils.core import setup, Extension
 from glob import glob
@@ -12,7 +11,10 @@ if hasattr(sys, 'getwindowsversion'):
     include_dirs.append('include_nt')
 else:
     sources.extend(glob('src_uuid/*.c'))
-    include_dirs.append('include_linux')
+    if sys.platform == 'darwin':
+        include_dirs.append('include_macosx')
+    else:
+        include_dirs.append('include_linux')
 
 ext = Extension('zmq._zmq', sources, libraries=libraries,
                 include_dirs=include_dirs)
