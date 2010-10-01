@@ -27,7 +27,7 @@ and the free Microsoft Visual C++ 2008 Express for Windows machines).
 Changelog
 ---------
 
-| 2.0.8a — 2010-09-27— MacOS X support.
+| 2.0.8 — 2010-09-27— MacOS X support.
 | 2.0.7a — 2010-09-15— World debut!
 
 Warning
