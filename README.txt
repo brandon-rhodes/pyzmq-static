@@ -1,8 +1,7 @@
 This package provides a statically-linked version
 of the **zmq** Python library,
 which is the official interface between Python
-and the ØMQ messaging library.
-You can find the exuberant ØMQ web site here:
+and the ØMQ messaging library:
 
 http://www.zeromq.org/
 
@@ -12,14 +11,12 @@ and is maintained by Brian E. Granger:
 
 http://pypi.python.org/pypi/pyzmq/
 
-.. _ZeroMQ: http://www.zeromq.org/
-
 This **pyzmq-static** distribution was created by Brandon Craig Rhodes
 after he became frustrated with having to install both libuuid-dev
 and ZeroMQ itself on every machine where he then wanted to install **pyzmq**.
 Whether you use Linux or Windows,
 this package should download and compile with a quick **pip** **install**
-assuming that you have the normal tools in place
+without requiring any dependencies beyond the normal tools
 for building Python extension modules at all
 (which are, specifically, the GNU C and C++ compilers for POSIX systems,
 and the free Microsoft Visual C++ 2008 Express for Windows machines).
@@ -27,8 +24,9 @@ and the free Microsoft Visual C++ 2008 Express for Windows machines).
 Changelog
 ---------
 
-| 2.0.8 — 2010-09-27— Mac OS X support.
-| 2.0.7a — 2010-09-15— World debut!
+| 2.0.10 — 2010-11-09 — ØMQ 2.0.10; FreeBSD support.
+| 2.0.8 — 2010-09-27 — Mac OS X support.
+| 2.0.7a — 2010-09-15 — World debut!
 
 Warning
 -------
@@ -56,7 +54,8 @@ So, okay, those are not very restrictive licensing terms.
 But still.
 See the source files themselves for more information.
 And thanks to Jeff Garbers for helping me get the package
-working on MacOS X!
+working on MacOS X,
+and to Tyler Tarabula for the FreeBSD support!
 
 Development
 -----------
