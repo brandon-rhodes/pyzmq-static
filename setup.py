@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+#import setuptools
 import sys
 from distutils.core import setup, Extension
 from glob import glob
@@ -11,17 +12,20 @@ if hasattr(sys, 'getwindowsversion'):
     libraries.extend([ 'rpcrt4', 'ws2_32' ])
     include_dirs.append('include_nt')
 else:
-    sources.extend(glob('src_uuid/*.c'))
     if sys.platform == 'darwin':
         include_dirs.append('include_macosx')
+        sources.extend(glob('src_uuid/*.c'))
+    elif sys.platform.startswith('freebsd'):  # for example, 'freebsd7'
+        include_dirs.append('include_freebsd')
     else:
         include_dirs.append('include_linux')
+        sources.extend(glob('src_uuid/*.c'))
 
 ext = Extension('zmq._zmq', sources, libraries=libraries,
                 include_dirs=include_dirs)
 
 setup(name='pyzmq-static',
-      version='2.0.8',
+      version='2.0.10',
       description=u'Statically linked ØMQ / 0MQ / ZeroMQ for Python',
       long_description=open('README.txt').read().decode('utf-8'),
       author='Brandon Craig Rhodes',
