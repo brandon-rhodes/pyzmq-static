@@ -47,6 +47,8 @@ cp $UTIL/shlibs/uuid/src/*.h \
 
 cp -r $PYZMQ/zmq/*.py $PYZMQ/zmq/eventloop $PYZMQ/zmq/tests zmq
 
+cp $ZEROMQ/builds/msvc/platform.hpp include_nt
+
 # Generate platform.hpp from platform.hpp.in so that I can compare it
 # against the cached versions.
 
