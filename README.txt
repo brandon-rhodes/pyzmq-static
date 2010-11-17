@@ -24,9 +24,9 @@ and the free Microsoft Visual C++ 2008 Express for Windows machines).
 Changelog
 ---------
 
-| 2.0.10 — 2010-11-09 — ØMQ 2.0.10; FreeBSD support.
-| 2.0.8 — 2010-09-27 — Mac OS X support.
-| 2.0.7a — 2010-09-15 — World debut!
+| 2010-11-17 — 2.0.10 — ØMQ 2.0.10; FreeBSD support.
+| 2010-09-27 — 2.0.8 — Mac OS X support.
+| 2010-09-15 — 2.0.7a — World debut!
 
 Warning
 -------
