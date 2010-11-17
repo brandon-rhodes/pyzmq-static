@@ -26,8 +26,8 @@ tar xvfz tmp/$PYZMQ.tar.gz
 # Copy the files we need into our version-controlled directories.  (We
 # keep include_linux and include_darwin from one run to the next, since
 # we cannot replace their contents unless we are on that platform.)
-rm -rf include licenses src src_nt src_uuid zmq
-mkdir include licenses src src_nt src_uuid zmq
+rm -rf include include_uuid licenses src src_nt src_uuid zmq
+mkdir  include include_uuid licenses src src_nt src_uuid zmq
 
 cp $ZEROMQ/COPYING* \
    licenses
@@ -39,11 +39,14 @@ cp $UTIL/shlibs/uuid/src/*.c \
    src_uuid
 rm src_uuid/gen_uuid_nt.c
 
-cp $UTIL/shlibs/uuid/src/*.h \
-   $ZEROMQ/include/*.h* \
+cp $ZEROMQ/include/*.h* \
    $ZEROMQ/src/*.h* \
    $PYZMQ/zmq/*.h \
    include
+
+mkdir include_uuid/uuid
+cp $UTIL/shlibs/uuid/src/*.h include_uuid      # where uuid expects it
+cp $UTIL/shlibs/uuid/src/*.h include_uuid/uuid # where ZeroMQ expects it
 
 cp -r $PYZMQ/zmq/*.py $PYZMQ/zmq/eventloop $PYZMQ/zmq/tests zmq
 

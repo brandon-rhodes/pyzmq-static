@@ -1,6 +1,7 @@
 ^MANIFEST$
 ^build$
 ^dist$
+\.egg-info$
 ^pyzmq-2.0.8$
 ^util-linux-ng-2.18$
 ^tmp$

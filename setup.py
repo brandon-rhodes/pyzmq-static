@@ -14,11 +14,13 @@ if hasattr(sys, 'getwindowsversion'):
 else:
     if sys.platform == 'darwin':
         include_dirs.append('include_macosx')
+        include_dirs.append('include_uuid')
         sources.extend(glob('src_uuid/*.c'))
     elif sys.platform.startswith('freebsd'):  # for example, 'freebsd7'
         include_dirs.append('include_freebsd')
     else:
         include_dirs.append('include_linux')
+        include_dirs.append('include_uuid')
         sources.extend(glob('src_uuid/*.c'))
 
 ext = Extension('zmq._zmq', sources, libraries=libraries,

@@ -1,4 +1,3 @@
 include include/*
-include include_linux/*
-include include_nt/*
+include include_*/*
 include licenses/*
