@@ -31,7 +31,9 @@
  * DAMAGE.
  * %End-Header%
  */
-
+#define HAVE_UNISTD_H
+#define HAVE_STDLIB_H
+#define HAVE_SYS_FILE_H
 /*
  * Force inclusion of SVID stuff since we need it if we're compiling in
  * gcc-wall wall mode

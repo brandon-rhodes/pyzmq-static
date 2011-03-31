@@ -56,6 +56,12 @@ cp $UTIL/shlibs/uuid/src/*.h include_uuid/uuid # where ZeroMQ expects it
 
 cp $ZEROMQ/builds/msvc/platform.hpp include_nt
 
+# Patch gen_uuid.c so that it gets some header files it needs.
+
+sed -i '34s/^/#define HAVE_UNISTD_H\
+#define HAVE_STDLIB_H\
+#define HAVE_SYS_FILE_H/' src_uuid/gen_uuid.c
+
 # Generate platform.hpp from platform.hpp.in so that I can compare it
 # against the cached versions.
 
