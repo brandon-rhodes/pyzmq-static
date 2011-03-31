@@ -23,6 +23,12 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import ctypes
+import os
+p = os.path.join(os.path.dirname(__file__), "_zeromq.so")
+_zeromq = ctypes.CDLL(p, mode=ctypes.RTLD_GLOBAL)
+del ctypes, os, p
+
 from zmq.utils import initthreads # initialize threads
 initthreads.init_threads()
 

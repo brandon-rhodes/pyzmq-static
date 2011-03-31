@@ -62,6 +62,16 @@ sed -i '34s/^/#define HAVE_UNISTD_H\
 #define HAVE_STDLIB_H\
 #define HAVE_SYS_FILE_H/' src_uuid/gen_uuid.c
 
+# Patch pyzmq to load an extra library.
+
+sed -i '/import initthreads/s/^/import ctypes\
+import os\
+p = os.path.join(os.path.dirname(__file__), "_zeromq.so")\
+_zeromq = ctypes.CDLL(p, mode=ctypes.RTLD_GLOBAL)\
+del ctypes, os, p\
+\
+/' zmq/__init__.py
+
 # Generate platform.hpp from platform.hpp.in so that I can compare it
 # against the cached versions.
 

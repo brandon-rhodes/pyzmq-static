@@ -126,13 +126,16 @@ extensions = []
 for submod, packages in submodules.items():
     for pkg in sorted(packages):
         sources = [pjoin('zmq', submod, pkg+'.c')]
-        sources.extend(static_sources)
         ext = Extension(
             'zmq.%s.%s'%(submod, pkg),
             sources = sources,
             include_dirs = include_dirs,
         )
         extensions.append(ext)
+
+extensions.append(Extension('zmq._zeromq',
+                            sources=static_sources,
+                            include_dirs=include_dirs))
 
 package_data = {'zmq':['*.pxd'],
                 'zmq.core':['*.pxd'],
