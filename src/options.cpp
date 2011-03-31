@@ -1,19 +1,20 @@
 /*
-    Copyright (c) 2007-2010 iMatix Corporation
+    Copyright (c) 2007-2011 iMatix Corporation
+    Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
     0MQ is free software; you can redistribute it and/or modify it under
-    the terms of the Lesser GNU General Public License as published by
+    the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    Lesser GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the Lesser GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -28,11 +29,17 @@ zmq::options_t::options_t () :
     hwm (0),
     swap (0),
     affinity (0),
-    rate (100),
+    rate (40 * 1000),
     recovery_ivl (10),
+    recovery_ivl_msec (-1),
     use_multicast_loop (true),
     sndbuf (0),
     rcvbuf (0),
+    type (-1),
+    linger (-1),
+    reconnect_ivl (100),
+    reconnect_ivl_max (0),
+    backlog (100),
     requires_in (false),
     requires_out (false),
     immediate_connect (true)
@@ -97,6 +104,14 @@ int zmq::options_t::setsockopt (int option_, const void *optval_,
         recovery_ivl = (uint32_t) *((int64_t*) optval_);
         return 0;
 
+    case ZMQ_RECOVERY_IVL_MSEC:
+        if (optvallen_ != sizeof (int64_t)  || *((int64_t*) optval_) < 0) {
+            errno = EINVAL;
+            return -1;
+        }
+        recovery_ivl_msec = (int32_t) *((int64_t*) optval_);
+        return 0;
+
     case ZMQ_MCAST_LOOP:
         if (optvallen_ != sizeof (int64_t)) {
             errno = EINVAL;
@@ -127,6 +142,47 @@ int zmq::options_t::setsockopt (int option_, const void *optval_,
         }
         rcvbuf = *((uint64_t*) optval_);
         return 0;
+
+    case ZMQ_LINGER:
+        if (optvallen_ != sizeof (int)) {
+            errno = EINVAL;
+            return -1;
+        }
+        linger = *((int*) optval_);
+        return 0;
+
+    case ZMQ_RECONNECT_IVL:
+        if (optvallen_ != sizeof (int)) {
+            errno = EINVAL;
+            return -1;
+        }
+        if (*((int*) optval_) < 0) {
+            errno = EINVAL;
+            return -1;
+        }
+        reconnect_ivl = *((int*) optval_);
+        return 0;
+
+    case ZMQ_RECONNECT_IVL_MAX:
+        if (optvallen_ != sizeof (int)) {
+            errno = EINVAL;
+            return -1;
+        }
+        if (*((int*) optval_) < 0) {
+            errno = EINVAL;
+            return -1;
+        }
+        reconnect_ivl_max = *((int*) optval_);
+        return 0;
+
+    case ZMQ_BACKLOG:
+        if (optvallen_ != sizeof (int)) {
+            errno = EINVAL;
+            return -1;
+        }
+        backlog = *((int*) optval_);
+        return 0;
+
     }
 
     errno = EINVAL;
@@ -192,6 +248,15 @@ int zmq::options_t::getsockopt (int option_, void *optval_, size_t *optvallen_)
         *optvallen_ = sizeof (int64_t);
         return 0;
 
+    case ZMQ_RECOVERY_IVL_MSEC:
+        if (*optvallen_ < sizeof (int64_t)) {
+            errno = EINVAL;
+            return -1;
+        }
+        *((int64_t*) optval_) = recovery_ivl_msec;
+        *optvallen_ = sizeof (int64_t);
+        return 0;
+
     case ZMQ_MCAST_LOOP:
         if (*optvallen_ < sizeof (int64_t)) {
             errno = EINVAL;
@@ -218,6 +283,52 @@ int zmq::options_t::getsockopt (int option_, void *optval_, size_t *optvallen_)
         *((uint64_t*) optval_) = rcvbuf;
         *optvallen_ = sizeof (uint64_t);
         return 0;
+
+    case ZMQ_TYPE:
+        if (*optvallen_ < sizeof (int)) {
+            errno = EINVAL;
+            return -1;
+        }
+        *((int*) optval_) = type;
+        *optvallen_ = sizeof (int);
+        return 0;
+
+    case ZMQ_LINGER:
+        if (*optvallen_ < sizeof (int)) {
+            errno = EINVAL;
+            return -1;
+        }
+        *((int*) optval_) = linger;
+        *optvallen_ = sizeof (int);
+        return 0;
+
+    case ZMQ_RECONNECT_IVL:
+        if (*optvallen_ < sizeof (int)) {
+            errno = EINVAL;
+            return -1;
+        }
+        *((int*) optval_) = reconnect_ivl;
+        *optvallen_ = sizeof (int);
+        return 0;
+
+    case ZMQ_RECONNECT_IVL_MAX:
+        if (*optvallen_ < sizeof (int)) {
+            errno = EINVAL;
+            return -1;
+        }
+        *((int*) optval_) = reconnect_ivl_max;
+        *optvallen_ = sizeof (int);
+        return 0;
+
+    case ZMQ_BACKLOG:
+        if (*optvallen_ < sizeof (int)) {
+            errno = EINVAL;
+            return -1;
+        }
+        *((int*) optval_) = backlog;
+        *optvallen_ = sizeof (int);
+        return 0;
+
     }
 
     errno = EINVAL;

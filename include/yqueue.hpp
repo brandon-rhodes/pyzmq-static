@@ -1,19 +1,20 @@
 /*
-    Copyright (c) 2007-2010 iMatix Corporation
+    Copyright (c) 2007-2011 iMatix Corporation
+    Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
     0MQ is free software; you can redistribute it and/or modify it under
-    the terms of the Lesser GNU General Public License as published by
+    the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    Lesser GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the Lesser GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -50,7 +51,7 @@ namespace zmq
         inline yqueue_t ()
         {
              begin_chunk = (chunk_t*) malloc (sizeof (chunk_t));
-             zmq_assert (begin_chunk);
+             alloc_assert (begin_chunk);
              begin_pos = 0;
              back_chunk = NULL;
              back_pos = 0;
@@ -105,7 +106,7 @@ namespace zmq
                 sc->prev = end_chunk;
             } else {
                 end_chunk->next = (chunk_t*) malloc (sizeof (chunk_t));
-                zmq_assert (end_chunk->next);
+                alloc_assert (end_chunk->next);
                 end_chunk->next->prev = end_chunk;
             }
             end_chunk = end_chunk->next;
@@ -189,7 +190,7 @@ namespace zmq
 
         //  Disable copying of yqueue.
         yqueue_t (const yqueue_t&);
-        void operator = (const yqueue_t&);
+        const yqueue_t &operator = (const yqueue_t&);
     };
 
 }

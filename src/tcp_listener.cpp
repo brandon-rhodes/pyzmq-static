@@ -1,19 +1,20 @@
 /*
-    Copyright (c) 2007-2010 iMatix Corporation
+    Copyright (c) 2007-2011 iMatix Corporation
+    Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
     0MQ is free software; you can redistribute it and/or modify it under
-    the terms of the Lesser GNU General Public License as published by
+    the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    Lesser GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the Lesser GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -30,6 +31,7 @@
 #ifdef ZMQ_HAVE_WINDOWS
 
 zmq::tcp_listener_t::tcp_listener_t () :
+    has_file (false),
     s (retired_fd)
 {
     memset (&addr, 0, sizeof (addr));
@@ -42,7 +44,8 @@ zmq::tcp_listener_t::~tcp_listener_t ()
         close ();
 }
 
-int zmq::tcp_listener_t::set_address (const char *protocol_, const char *addr_)
+int zmq::tcp_listener_t::set_address (const char *protocol_, const char *addr_,
+    int backlog_)
 {
     //  IPC protocol is not supported on Windows platform.
     if (strcmp (protocol_, "tcp") != 0 ) {
@@ -81,7 +84,7 @@ int zmq::tcp_listener_t::set_address (const char *protocol_, const char *addr_)
     }
 
     //  Listen for incomming connections.
-    rc = listen (s, 1);
+    rc = listen (s, backlog_);
     if (rc == SOCKET_ERROR) {
         wsa_error_to_errno ();
         return -1;
@@ -150,6 +153,7 @@ zmq::fd_t zmq::tcp_listener_t::accept ()
 #endif
 
 zmq::tcp_listener_t::tcp_listener_t () :
+    has_file (false),
     s (retired_fd)
 {
     memset (&addr, 0, sizeof (addr));
@@ -161,7 +165,8 @@ zmq::tcp_listener_t::~tcp_listener_t ()
         close ();
 }
 
-int zmq::tcp_listener_t::set_address (const char *protocol_, const char *addr_)
+int zmq::tcp_listener_t::set_address (const char *protocol_, const char *addr_,
+    int backlog_)
 {
     if (strcmp (protocol_, "tcp") == 0 ) {
 
@@ -196,14 +201,20 @@ int zmq::tcp_listener_t::set_address (const char *protocol_, const char *addr_)
         //  Bind the socket to the network interface and port.
         rc = bind (s, (struct sockaddr*) &addr, addr_len);
         if (rc != 0) {
-            close ();
+            int err = errno;
+            if (close () != 0)
+                return -1;
+            errno = err;
             return -1;
         }
 
         //  Listen for incomming connections.
-        rc = listen (s, tcp_connection_backlog);
+        rc = listen (s, backlog_);
         if (rc != 0) {
-            close ();
+            int err = errno;
+            if (close () != 0)
+                return -1;
+            errno = err;
             return -1;
         }
 
@@ -234,16 +245,23 @@ int zmq::tcp_listener_t::set_address (const char *protocol_, const char *addr_)
         errno_assert (rc != -1);
 
         //  Bind the socket to the file path.
-        rc = bind (s, (struct sockaddr*) &addr, sizeof (sockaddr_un));
+        rc = bind (s, (struct sockaddr*) &addr, addr_len);
         if (rc != 0) {
-            close ();
+            int err = errno;
+            if (close () != 0)
+                return -1;
+            errno = err;
             return -1;
         }
+        has_file = true;
 
         //  Listen for incomming connections.
-        rc = listen (s, tcp_connection_backlog);
+        rc = listen (s, backlog_);
         if (rc != 0) {
-            close ();
+            int err = errno;
+            if (close () != 0)
+                return -1;
+            errno = err;
             return -1;
         }
 
@@ -268,7 +286,7 @@ int zmq::tcp_listener_t::close ()
     //  If there's an underlying UNIX domain socket, get rid of the file it
     //  is associated with.
     struct sockaddr_un *su = (struct sockaddr_un*) &addr;
-    if (AF_UNIX == su->sun_family) {
+    if (AF_UNIX == su->sun_family && has_file) {
         rc = ::unlink(su->sun_path);
         if (rc != 0)
             return -1;

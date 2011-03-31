@@ -1,19 +1,20 @@
 /*
-    Copyright (c) 2007-2010 iMatix Corporation
+    Copyright (c) 2007-2011 iMatix Corporation
+    Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
     0MQ is free software; you can redistribute it and/or modify it under
-    the terms of the Lesser GNU General Public License as published by
+    the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    Lesser GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the Lesser GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -21,6 +22,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <string>
+
+#include "../include/zmq.h"
 
 #include "ip.hpp"
 #include "platform.hpp"
@@ -50,7 +53,7 @@ static int resolve_nic_name (in_addr* addr_, char const *interface_)
     //  Allocate memory to get interface names.
     size_t ifr_size = sizeof (struct lifreq) * ifn.lifn_count;
     char *ifr = (char*) malloc (ifr_size);
-    errno_assert (ifr);
+    alloc_assert (ifr);
     
     //  Retrieve interface names.
     lifconf ifc;
@@ -228,10 +231,13 @@ int zmq::resolve_ip_interface (sockaddr_storage* addr_, socklen_t *addr_len_,
     }
 
     //  There's no such interface name. Assume literal address.
+#if defined ZMQ_HAVE_OPENVMS && defined __ia64
+    __addrinfo64 *res = NULL;
+    __addrinfo64 req;
+#else
     addrinfo *res = NULL;
-
-    //  Set up the query.
     addrinfo req;
+#endif
     memset (&req, 0, sizeof (req));
 
     //  We only support IPv4 addresses for now.
@@ -311,11 +317,13 @@ int zmq::resolve_ip_hostname (sockaddr_storage *addr_, socklen_t *addr_len_,
     return 0;
 }
 
-#if !defined ZMQ_HAVE_WINDOWS && !defined ZMQ_HAVE_OPENVMS
-
 int zmq::resolve_local_path (sockaddr_storage *addr_, socklen_t *addr_len_,
     const char *path_)
 {
+#if defined ZMQ_HAVE_WINDOWS || defined ZMQ_HAVE_OPENVMS
+    errno = EPROTONOSUPPORT;
+    return -1;
+#else
     sockaddr_un *un = (sockaddr_un*) addr_;
     if (strlen (path_) >= sizeof (un->sun_path))
     {
@@ -326,7 +334,6 @@ int zmq::resolve_local_path (sockaddr_storage *addr_, socklen_t *addr_len_,
     un->sun_family = AF_UNIX;
     *addr_len_ = sizeof (sockaddr_un);
     return 0;
-}
-
 #endif
+}
 

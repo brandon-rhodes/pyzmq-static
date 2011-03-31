@@ -21,9 +21,20 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import sys
+
 from unittest import TestCase
 
 import zmq
+
+try:
+    from unittest import SkipTest
+except ImportError:
+    try:
+        from nose import SkipTest
+    except ImportError:
+        class SkipTest(Exception):
+            pass
 
 #-----------------------------------------------------------------------------
 # Utilities
@@ -34,6 +45,14 @@ class BaseZMQTestCase(TestCase):
 
     def setUp(self):
         self.context = zmq.Context()
+        self.sockets = []
+    
+    def tearDown(self):
+        while self.sockets:
+            sock = self.sockets.pop()
+            sock.close()
+        del self.context
+            
 
     def create_bound_pair(self, type1, type2, interface='tcp://127.0.0.1'):
         """Create a bound socket pair using a random port."""
@@ -41,6 +60,7 @@ class BaseZMQTestCase(TestCase):
         port = s1.bind_to_random_port(interface)
         s2 = zmq.Socket(self.context, type2)
         s2.connect('%s:%s' % (interface, port))
+        self.sockets.extend([s1,s2])
         return s1, s2
 
     def ping_pong(self, s1, s2, msg):
@@ -64,10 +84,11 @@ class BaseZMQTestCase(TestCase):
         o3 = s1.recv_pyobj()
         return o3
 
-    def assertRaisesErrno(self, errno, func, *args):
+    def assertRaisesErrno(self, errno, func, *args, **kwargs):
         try:
-            func(*args)
-        except zmq.ZMQError, e:
+            func(*args, **kwargs)
+        except zmq.ZMQError:
+            e = sys.exc_info()[1]
             self.assertEqual(e.errno, errno, "wrong error raised, expected '%s' \
 got '%s'" % (zmq.ZMQError(errno), zmq.ZMQError(e.errno)))
         else:

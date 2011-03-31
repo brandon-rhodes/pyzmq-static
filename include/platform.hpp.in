@@ -1,5 +1,8 @@
 /* src/platform.hpp.in.  Generated from configure.in by autoheader.  */
 
+/* Define to 1 if you have the <alloca.h> header file. */
+#undef HAVE_ALLOCA_H
+
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 #undef HAVE_ARPA_INET_H
 

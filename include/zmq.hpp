@@ -1,19 +1,20 @@
 /*
-    Copyright (c) 2007-2010 iMatix Corporation
+    Copyright (c) 2007-2011 iMatix Corporation
+    Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
     0MQ is free software; you can redistribute it and/or modify it under
-    the terms of the Lesser GNU General Public License as published by
+    the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    Lesser GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the Lesser GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -22,8 +23,8 @@
 
 #include "zmq.h"
 
-#include <assert.h>
-#include <string.h>
+#include <cassert>
+#include <cstring>
 #include <exception>
 
 namespace zmq
@@ -41,6 +42,11 @@ namespace zmq
         virtual const char *what () const throw ()
         {
             return zmq_strerror (errnum);
+        }
+
+        int num () const
+        {
+            return errnum;
         }
 
     private:
@@ -61,6 +67,11 @@ namespace zmq
         int rc = zmq_device (device_, insocket_, outsocket_);
         if (rc != 0)
             throw error_t ();
+    }
+
+    inline void version (int *major_, int *minor_, int *patch_)
+    {
+        zmq_version (major_, minor_, patch_);
     }
 
     class message_t : private zmq_msg_t
@@ -94,8 +105,7 @@ namespace zmq
         inline ~message_t ()
         {
             int rc = zmq_msg_close (this);
-            if (rc != 0)
-                throw error_t ();
+            assert (rc == 0);
         }
 
         inline void rebuild ()
@@ -180,6 +190,14 @@ namespace zmq
             assert (rc == 0);
         }
 
+        //  Be careful with this, it's probably only useful for
+        //  using the C api together with an existing C++ api.
+        //  Normally you should never need to use this.
+        inline operator void* ()
+        {
+            return ptr;
+        }
+        
     private:
 
         void *ptr;
@@ -201,14 +219,23 @@ namespace zmq
 
         inline ~socket_t ()
         {
-            int rc = zmq_close (ptr);
-            if (rc != 0)
-                throw error_t ();
+            close();
         }
 
         inline operator void* ()
         {
             return ptr;
+        }
+
+        inline void close()
+        {
+            if(ptr == NULL)
+                // already closed
+                return ;
+            int rc = zmq_close (ptr);
+            if (rc != 0)
+                throw error_t ();
+            ptr = 0 ;
         }
 
         inline void setsockopt (int option_, const void *optval_,

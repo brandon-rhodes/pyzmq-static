@@ -23,9 +23,19 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-from zmq import _zmq
-from zmq._zmq import *
+from zmq.utils import initthreads # initialize threads
+initthreads.init_threads()
 
-__all__ = _zmq.__all__
+from zmq import core, devices
+from zmq.core import *
 
-__version__ = '2.0.8'
+def get_includes():
+    """Return a list of directories to include for linking against pyzmq with cython."""
+    from os.path import join, dirname, abspath, pardir
+    base = dirname(__file__)
+    parent = abspath(join(base, pardir))
+    return [ parent ] + [ join(base, subdir) for subdir in ('utils',) ]
+
+
+__all__ = ['get_includes'] + core.__all__
+

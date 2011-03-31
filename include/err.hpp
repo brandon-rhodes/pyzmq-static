@@ -1,19 +1,20 @@
 /*
-    Copyright (c) 2007-2010 iMatix Corporation
+    Copyright (c) 2007-2011 iMatix Corporation
+    Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
     0MQ is free software; you can redistribute it and/or modify it under
-    the terms of the Lesser GNU General Public License as published by
+    the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    Lesser GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the Lesser GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -35,15 +36,18 @@
 #include <netdb.h>
 #endif
 
+namespace zmq
+{
+    const char *errno_to_string (int errno_);
+}
+
 #ifdef ZMQ_HAVE_WINDOWS
 
 namespace zmq
 {
-
     const char *wsa_error ();
     void win_error (char *buffer_, size_t buffer_size_);
-    void wsa_error_to_errno ();
-  
+    void wsa_error_to_errno (); 
 }
 
 //  Provides convenient way to check WSA-style errors on Windows.
@@ -95,7 +99,7 @@ namespace zmq
         }\
     } while (false)
 
-// Provides convenient way to check for POSIX errors.
+//  Provides convenient way to check for POSIX errors.
 #define posix_assert(x) \
     do {\
         if (unlikely (x)) {\
@@ -104,7 +108,7 @@ namespace zmq
         }\
     } while (false)
 
-// Provides convenient way to check for errors from getaddrinfo.
+//  Provides convenient way to check for errors from getaddrinfo.
 #define gai_assert(x) \
     do {\
         if (unlikely (x)) {\
@@ -114,10 +118,16 @@ namespace zmq
         }\
     } while (false)
 
+//  Provides convenient way to check whether memory allocation have succeeded.
+#define alloc_assert(x) \
+    do {\
+        if (unlikely (!x)) {\
+            fprintf (stderr, "FATAL ERROR: OUT OF MEMORY (%s:%d)\n",\
+                __FILE__, __LINE__);\
+            abort ();\
+        }\
+    } while (false)
+
 #endif
 
-#define zmq_not_implemented() \
-    do {\
-        fprintf (stderr, "Hic sunt leones (%s:%d)\n", __FILE__, __LINE__);\
-        abort ();\
-    } while (false)
+

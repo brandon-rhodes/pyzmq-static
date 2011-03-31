@@ -1,19 +1,20 @@
 /*
-    Copyright (c) 2007-2010 iMatix Corporation
+    Copyright (c) 2007-2011 iMatix Corporation
+    Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
     0MQ is free software; you can redistribute it and/or modify it under
-    the terms of the Lesser GNU General Public License as published by
+    the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     0MQ is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    Lesser GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the Lesser GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -39,13 +40,16 @@ namespace zmq
             own,
             attach,
             bind,
-            revive,
-            reader_info,
+            activate_reader,
+            activate_writer,
             pipe_term,
             pipe_term_ack,
             term_req,
             term,
-            term_ack
+            term_ack,
+            reap,
+            reaped,
+            done
         } type;
 
         union {
@@ -61,10 +65,11 @@ namespace zmq
 
             //  Sent to socket to let it know about the newly created object.
             struct {
-                class owned_t *object;
+                class own_t *object;
             } own;
 
-            //  Attach the engine to the session.
+            //  Attach the engine to the session. If engine is NULL, it informs
+            //  session that the connection have failed.
             struct {
                 struct i_engine *engine;
                 unsigned char peer_identity_size;
@@ -83,14 +88,13 @@ namespace zmq
             //  Sent by pipe writer to inform dormant pipe reader that there
             //  are messages in the pipe.
             struct {
-            } revive;
+            } activate_reader;
 
-            //  Sent by pipe reader to inform pipe writer
-            //  about how many messages it has read so far.
-            //  Used to implement the flow control.
+            //  Sent by pipe reader to inform pipe writer about how many
+            //  messages it has read so far.
             struct {
                 uint64_t msgs_read;
-            } reader_info;
+            } activate_writer;
 
             //  Sent by pipe reader to pipe writer to ask it to terminate
             //  its end of the pipe.
@@ -104,17 +108,33 @@ namespace zmq
             //  Sent by I/O object ot the socket to request the shutdown of
             //  the I/O object.
             struct {
-                class owned_t *object;
+                class own_t *object;
             } term_req;
 
             //  Sent by socket to I/O object to start its shutdown.
             struct {
+                int linger;
             } term;
 
             //  Sent by I/O object to the socket to acknowledge it has
             //  shut down.
             struct {
             } term_ack;
+
+            //  Transfers the ownership of the closed socket
+            //  to the reaper thread.
+            struct {
+                class socket_base_t *socket;
+            } reap;
+
+            //  Closed socket notifies the reaper that it's already deallocated.
+            struct {
+            } reaped;
+
+            //  Sent by reaper thread to the term thread when all the sockets
+            //  are successfully deallocated.
+            struct {
+            } done;
 
         } args;
     };
