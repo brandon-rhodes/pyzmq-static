@@ -1,6 +1,9 @@
 /* src/platform.hpp.  Generated from platform.hpp.in by configure.  */
 /* src/platform.hpp.in.  Generated from configure.in by autoheader.  */
 
+/* Define to 1 if you have the <alloca.h> header file. */
+#define HAVE_ALLOCA_H 1
+
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 #define HAVE_ARPA_INET_H 1
 
@@ -41,7 +44,7 @@
 /* #undef HAVE_LIBRPCRT4 */
 
 /* Define to 1 if you have the `rt' library (-lrt). */
-/* #undef HAVE_LIBRT */
+#define HAVE_LIBRT 1
 
 /* Define to 1 if you have the `socket' library (-lsocket). */
 /* #undef HAVE_LIBSOCKET */
@@ -129,7 +132,7 @@
 #define PACKAGE_NAME "zeromq"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "zeromq 2.0.10"
+#define PACKAGE_STRING "zeromq 2.1.4"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "zeromq"
@@ -138,7 +141,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.0.10"
+#define PACKAGE_VERSION "2.1.4"
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void
@@ -150,7 +153,7 @@
 #define TIME_WITH_SYS_TIME 1
 
 /* Version number of package */
-#define VERSION "2.0.10"
+#define VERSION "2.1.4"
 
 /* Force to use mutexes */
 /* #undef ZMQ_FORCE_MUTEXES */
