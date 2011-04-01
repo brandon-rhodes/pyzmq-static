@@ -1,6 +1,9 @@
 /* src/platform.hpp.  Generated from platform.hpp.in by configure.  */
 /* src/platform.hpp.in.  Generated from configure.in by autoheader.  */
 
+/* Define to 1 if you have the <alloca.h> header file. */
+#define HAVE_ALLOCA_H 1
+
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 #define HAVE_ARPA_INET_H 1
 
@@ -47,7 +50,7 @@
 /* #undef HAVE_LIBSOCKET */
 
 /* Define to 1 if you have the `uuid' library (-luuid). */
-#define HAVE_LIBUUID 1
+/* #undef HAVE_LIBUUID */
 
 /* Define to 1 if you have the `ws2_32' library (-lws2_32). */
 /* #undef HAVE_LIBWS2_32 */
