@@ -1,0 +1,13 @@
+--- src_uuid/gen_uuid.c.orig	2011-04-01 18:54:25.000000000 -0400
++++ src_uuid/gen_uuid.c	2011-04-01 18:54:40.000000000 -0400
+@@ -31,7 +31,9 @@
+  * DAMAGE.
+  * %End-Header%
+  */
+-
++#define HAVE_UNISTD_H
++#define HAVE_STDLIB_H
++#define HAVE_SYS_FILE_H
+ /*
+  * Force inclusion of SVID stuff since we need it if we're compiling in
+  * gcc-wall wall mode

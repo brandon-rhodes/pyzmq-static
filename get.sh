@@ -7,7 +7,6 @@ set -e
 # Re-fetch the sources necessary for building pyzmq-static.
 
 cd $(dirname "$0")
-mkdir -p tmp
 
 UTIL=util-linux-2.19
 ZEROMQ=zeromq-2.1.4
@@ -15,11 +14,14 @@ PYZMQ=pyzmq-2.1.1
 
 # Download source distributions, or make sure they are up to date.
 
-cd tmp
-wget -c "http://www.kernel.org/pub/linux/utils/util-linux-ng/v2.19/$UTIL.tar.gz"
-wget -c "http://download.zeromq.org/$ZEROMQ.tar.gz"
-wget -c "http://pypi.python.org/packages/source/p/pyzmq/pyzmq-2.1.1.tar.gz#md5=f1d52b8bdf1f5f1e34b2c545da87a1e0"
-cd ..
+if [ ! -d tmp ]; then
+    mkdir tmp
+    cd tmp
+    curl -O "http://www.kernel.org/pub/linux/utils/util-linux-ng/v2.19/$UTIL.tar.gz"
+    curl -O "http://download.zeromq.org/$ZEROMQ.tar.gz"
+    curl -O "http://pypi.python.org/packages/source/p/pyzmq/pyzmq-2.1.1.tar.gz"
+    cd ..
+fi
 
 # Untar them.
 
@@ -57,24 +59,10 @@ cp $UTIL/shlibs/uuid/src/*.h include_uuid/uuid # where ZeroMQ expects it
 cp $ZEROMQ/builds/msvc/platform.hpp include_nt
 
 # Patch gen_uuid.c so that it gets some header files it needs.
+# Patch pyzmq to manually load the 0MQ shared library.
 
-sed -i '34s/^/#define HAVE_UNISTD_H\
-#define HAVE_STDLIB_H\
-#define HAVE_SYS_FILE_H/' src_uuid/gen_uuid.c
-
-# Patch pyzmq to load an extra library.
-
-sed -i '/import initthreads/s/^/# First, use ctypes to load the shared library.\
-\
-import ctypes\
-import os\
-p = os.path.join(os.path.dirname(__file__), "_zeromq.so")\
-_zeromq = ctypes.CDLL(p, mode=ctypes.RTLD_GLOBAL)\
-del ctypes, os, p\
-\
-# Now we can safely proceed to load the Python extensions.\
-\
-/' zmq/__init__.py
+patch -p0 < patch-gen_uuid
+patch -p0 < patch-zmq-init
 
 # Generate platform.hpp from platform.hpp.in so that I can compare it
 # against the cached versions.
