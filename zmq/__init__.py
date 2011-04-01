@@ -23,11 +23,15 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+# First, use ctypes to load the shared library.
+
 import ctypes
 import os
 p = os.path.join(os.path.dirname(__file__), "_zeromq.so")
 _zeromq = ctypes.CDLL(p, mode=ctypes.RTLD_GLOBAL)
 del ctypes, os, p
+
+# Now we can safely proceed to load the Python extensions.
 
 from zmq.utils import initthreads # initialize threads
 initthreads.init_threads()
