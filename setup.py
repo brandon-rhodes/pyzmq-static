@@ -161,6 +161,8 @@ setup(name='pyzmq-static',
         'Intended Audience :: Financial and Insurance Industry',
         'Intended Audience :: Science/Research',
         'Intended Audience :: System Administrators',
+        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
         'Operating System :: MacOS :: MacOS X',  # passes tests
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
