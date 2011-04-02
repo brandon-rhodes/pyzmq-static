@@ -144,8 +144,8 @@ package_data = {'zmq':['*.pxd'],
 }
 
 setup(name='pyzmq-static',
-      version='2.0.10',
-      description=u'Statically linked ØMQ / 0MQ / ZeroMQ for Python',
+      version='2.1.4',
+      description=u'zmq package that compiles its own ØMQ / 0MQ / ZeroMQ',
       long_description=open('README.txt').read().decode('utf-8'),
       author='Brandon Craig Rhodes',
       author_email='brandon@rhodesmill.org',
