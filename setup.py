@@ -143,10 +143,17 @@ package_data = {'zmq':['*.pxd'],
                 'zmq.utils':['*.pxd', '*.h'],
 }
 
+long_description = open('README.txt').read().decode('utf-8')
+if sys.version_info < (2, 6):  # work around Python 2.5 UnicodeEncodeError
+    description = u'zmq package that compiles its own 0MQ / ZeroMQ'
+    long_description = long_description.encode('utf-8')
+else:
+    description = u'zmq package that compiles its own ØMQ / 0MQ / ZeroMQ'
+
 setup(name='pyzmq-static',
       version='2.1.4',
-      description=u'zmq package that compiles its own ØMQ / 0MQ / ZeroMQ',
-      long_description=open('README.txt').read().decode('utf-8'),
+      description=description,
+      long_description=long_description,
       author='Brandon Craig Rhodes',
       author_email='brandon@rhodesmill.org',
       url='http://bitbucket.org/brandon/pyzmq-static',
