@@ -63,7 +63,7 @@ void zmq::xrep_t::xattach_pipes (reader_t *inpipe_, writer_t *outpipe_,
 
         if (terminating) {
             register_term_acks (1);
-            outpipe_->terminate ();        
+            outpipe_->terminate ();
         }
     }
 
@@ -102,11 +102,13 @@ void zmq::xrep_t::terminated (reader_t *pipe_)
     for (inpipes_t::iterator it = inpipes.begin (); it != inpipes.end ();
           ++it) {
         if (it->reader == pipe_) {
+            if ((inpipes_t::size_type) (it - inpipes.begin ()) < current_in)
+                current_in--;
             inpipes.erase (it);
-            if (terminating)
-                unregister_term_ack ();
             if (current_in >= inpipes.size ())
                 current_in = 0;
+            if (terminating)
+                unregister_term_ack ();
             return;
         }
     }
@@ -269,7 +271,7 @@ int zmq::xrep_t::xrecv (zmq_msg_t *msg_, int flags_)
             zmq_assert (rc == 0);
             memcpy (zmq_msg_data (msg_), inpipes [current_in].identity.data (),
                 zmq_msg_size (msg_));
-            msg_->flags = ZMQ_MSG_MORE;
+            msg_->flags |= ZMQ_MSG_MORE;
             return 0;
         }
 
@@ -286,6 +288,16 @@ int zmq::xrep_t::xrecv (zmq_msg_t *msg_, int flags_)
     zmq_msg_init (msg_);
     errno = EAGAIN;
     return -1;
+}
+
+int zmq::xrep_t::rollback (void)
+{
+    if (current_out) {
+        current_out->rollback ();
+        current_out = NULL;
+        more_out = false;
+    }
+    return 0;
 }
 
 bool zmq::xrep_t::xhas_in ()

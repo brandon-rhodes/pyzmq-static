@@ -22,6 +22,7 @@
 #-----------------------------------------------------------------------------
 
 import zmq
+from zmq.utils.strtypes import asbytes
 from zmq.tests import BaseZMQTestCase
 
 
@@ -54,8 +55,20 @@ class TestContext(BaseZMQTestCase):
     def test_term_hang(self):
         rep,req = self.create_bound_pair(zmq.XREP, zmq.XREQ)
         req.setsockopt(zmq.LINGER, 0)
-        req.send('hello'.encode(), copy=False)
+        req.send(asbytes('hello'), copy=False)
         req.close()
         rep.close()
         self.context.term()
+    
+    def test_instance(self):
+        ctx = zmq.Context.instance()
+        c2 = zmq.Context.instance(io_threads=2)
+        self.assertTrue(c2 is ctx)
+        c2.term()
+        c3 = zmq.Context.instance()
+        c4 = zmq.Context.instance()
+        self.assertFalse(c3 is c2)
+        self.assertFalse(c3.closed)
+        self.assertTrue(c3 is c4)
+        
 

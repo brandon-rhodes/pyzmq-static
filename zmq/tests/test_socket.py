@@ -28,7 +28,7 @@ import time
 
 import zmq
 from zmq.tests import BaseZMQTestCase, SkipTest
-from zmq.utils.strtypes import bytes, unicode
+from zmq.utils.strtypes import bytes, unicode, asbytes
 try:
     from queue import Queue
 except:
@@ -73,19 +73,23 @@ class TestSocket(BaseZMQTestCase):
         self.assertEquals(topic, s.recv_unicode())
         self.assertEquals(topic*2, s.recv_unicode(encoding='latin-1'))
     
-    def test_2_1_sockopts(self):
-        "test non-uint64 sockopts introduced in zeromq 2.1.0"
-        v = list(map(int, zmq.zmq_version().split('.', 2)[:2]))
-        if not (v[0] >= 2 and v[1] >= 1):
+    def test_int_sockopts(self):
+        "test non-uint64 sockopts"
+        v = zmq.zmq_version()
+        if not v >= '2.1':
             raise SkipTest
+        elif v < '3.0':
+            hwm = zmq.HWM
+        else:
+            hwm = zmq.SNDHWM
         p,s = self.create_bound_pair(zmq.PUB, zmq.SUB)
         p.setsockopt(zmq.LINGER, 0)
         self.assertEquals(p.getsockopt(zmq.LINGER), 0)
         p.setsockopt(zmq.LINGER, -1)
         self.assertEquals(p.getsockopt(zmq.LINGER), -1)
-        self.assertEquals(p.getsockopt(zmq.HWM), 0)
-        p.setsockopt(zmq.HWM, 11)
-        self.assertEquals(p.getsockopt(zmq.HWM), 11)
+        self.assertEquals(p.getsockopt(hwm), 0)
+        p.setsockopt(hwm, 11)
+        self.assertEquals(p.getsockopt(hwm), 11)
         # p.setsockopt(zmq.EVENTS, zmq.POLLIN)
         self.assertEquals(p.getsockopt(zmq.EVENTS), zmq.POLLOUT)
         self.assertRaisesErrno(zmq.EINVAL, p.setsockopt,zmq.EVENTS, 2**7-1)
@@ -93,13 +97,19 @@ class TestSocket(BaseZMQTestCase):
         self.assertEquals(p.getsockopt(zmq.TYPE), zmq.PUB)
         self.assertEquals(s.getsockopt(zmq.TYPE), s.socket_type)
         self.assertEquals(s.getsockopt(zmq.TYPE), zmq.SUB)
+        
+        # check for overflow / wrong type:
+        for opt in zmq.core.constants.int_sockopts+zmq.core.constants.int64_sockopts:
+            n = p.getsockopt(opt)
+            self.assertTrue(n < 2**31)
     
     def test_sockopt_roundtrip(self):
         "test set/getsockopt roundtrip."
         p = self.context.socket(zmq.PUB)
-        self.assertEquals(p.getsockopt(zmq.HWM), 0)
-        p.setsockopt(zmq.HWM, 11)
-        self.assertEquals(p.getsockopt(zmq.HWM), 11)
+        self.sockets.append(p)
+        self.assertEquals(p.getsockopt(zmq.LINGER), -1)
+        p.setsockopt(zmq.LINGER, 11)
+        self.assertEquals(p.getsockopt(zmq.LINGER), 11)
         
     def test_send_unicode(self):
         "test sending unicode objects"
@@ -124,18 +134,17 @@ class TestSocket(BaseZMQTestCase):
         a = self.context.socket(zmq.XREQ)
         port = a.bind_to_random_port(addr)
         a.close()
-        del a 
         iface = "%s:%i"%(addr,port)
         a = self.context.socket(zmq.XREQ)
-        a.setsockopt(zmq.IDENTITY, "a".encode())
+        a.setsockopt(zmq.IDENTITY, asbytes("a"))
         b = self.context.socket(zmq.XREP)
         self.sockets.extend([a,b])
         a.connect(iface)
         time.sleep(0.1)
-        p1 = a.send('something'.encode(), copy=False, track=True)
+        p1 = a.send(asbytes('something'), copy=False, track=True)
         self.assertTrue(isinstance(p1, zmq.MessageTracker))
         self.assertFalse(p1.done)
-        p2 = a.send_multipart(list(map(str.encode, ['something', 'else'])), copy=False, track=True)
+        p2 = a.send_multipart(list(map(asbytes, ['something', 'else'])), copy=False, track=True)
         self.assert_(isinstance(p2, zmq.MessageTracker))
         self.assertEquals(p2.done, False)
         self.assertEquals(p1.done, False)
@@ -143,11 +152,11 @@ class TestSocket(BaseZMQTestCase):
         b.bind(iface)
         msg = b.recv_multipart()
         self.assertEquals(p1.done, True)
-        self.assertEquals(msg, (list(map(str.encode, ['a', 'something']))))
+        self.assertEquals(msg, (list(map(asbytes, ['a', 'something']))))
         msg = b.recv_multipart()
         self.assertEquals(p2.done, True)
-        self.assertEquals(msg, list(map(str.encode, ['a', 'something', 'else'])))
-        m = zmq.Message("again".encode(), track=True)
+        self.assertEquals(msg, list(map(asbytes, ['a', 'something', 'else'])))
+        m = zmq.Message(asbytes("again"), track=True)
         self.assertEquals(m.done, False)
         p1 = a.send(m, copy=False)
         p2 = a.send(m, copy=False)
@@ -156,10 +165,10 @@ class TestSocket(BaseZMQTestCase):
         self.assertEquals(p2.done, False)
         msg = b.recv_multipart()
         self.assertEquals(m.done, False)
-        self.assertEquals(msg, list(map(str.encode, ['a', 'again'])))
+        self.assertEquals(msg, list(map(asbytes, ['a', 'again'])))
         msg = b.recv_multipart()
         self.assertEquals(m.done, False)
-        self.assertEquals(msg, list(map(str.encode, ['a', 'again'])))
+        self.assertEquals(msg, list(map(asbytes, ['a', 'again'])))
         self.assertEquals(p1.done, False)
         self.assertEquals(p2.done, False)
         pm = m.tracker
@@ -167,7 +176,7 @@ class TestSocket(BaseZMQTestCase):
         time.sleep(0.1)
         self.assertEquals(p1.done, True)
         self.assertEquals(p2.done, True)
-        m = zmq.Message('something'.encode(), track=False)
+        m = zmq.Message(asbytes('something'), track=False)
         self.assertRaises(ValueError, a.send, m, copy=False, track=True)
         
 
@@ -175,10 +184,10 @@ class TestSocket(BaseZMQTestCase):
         ctx = zmq.Context()
         s = ctx.socket(zmq.PUB)
         s.close()
-        self.assertRaises(zmq.ZMQError, s.bind, ''.encode())
-        self.assertRaises(zmq.ZMQError, s.connect, ''.encode())
-        self.assertRaises(zmq.ZMQError, s.setsockopt, zmq.SUBSCRIBE, ''.encode())
-        self.assertRaises(zmq.ZMQError, s.send, 'asdf'.encode())
+        self.assertRaises(zmq.ZMQError, s.bind, asbytes(''))
+        self.assertRaises(zmq.ZMQError, s.connect, asbytes(''))
+        self.assertRaises(zmq.ZMQError, s.setsockopt, zmq.SUBSCRIBE, asbytes(''))
+        self.assertRaises(zmq.ZMQError, s.send, asbytes('asdf'))
         self.assertRaises(zmq.ZMQError, s.recv)
         del ctx
     

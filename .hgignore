@@ -2,7 +2,7 @@
 ^build$
 ^dist$
 \.egg-info$
-^pyzmq-2.1.1$
-^util-linux-2.19$
+^pyzmq-[\d.]+$
+^util-linux-[\d.]+$
 ^tmp$
-^zeromq-2.1.4$
+^zeromq-[\d.]+$

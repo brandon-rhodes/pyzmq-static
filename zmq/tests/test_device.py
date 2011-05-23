@@ -26,7 +26,7 @@ import time
 import zmq
 from zmq import devices
 from zmq.tests import BaseZMQTestCase
-from zmq.utils.strtypes import (bytes,unicode,basestring)
+from zmq.utils.strtypes import (bytes,unicode,basestring,asbytes)
 
 #-----------------------------------------------------------------------------
 # Tests
@@ -34,24 +34,19 @@ from zmq.utils.strtypes import (bytes,unicode,basestring)
 
 
 class TestDevice(BaseZMQTestCase):
-
+    
     def test_device_types(self):
-        # a = self.context.socket(zmq.SUB)
         for devtype in (zmq.STREAMER, zmq.FORWARDER, zmq.QUEUE):
             dev = devices.Device(devtype, zmq.PAIR,zmq.PAIR)
             self.assertEquals(dev.device_type, devtype)
             del dev
-        # del a
     
     def test_device_attributes(self):
-        # a = self.context.socket(zmq.SUB)
-        # b = self.context.socket(zmq.PUB)
         dev = devices.Device(zmq.FORWARDER, zmq.SUB, zmq.PUB)
-        self.assert_(dev.in_type == zmq.SUB)
-        self.assert_(dev.out_type == zmq.PUB)
+        self.assertEquals(dev.in_type, zmq.SUB)
+        self.assertEquals(dev.out_type, zmq.PUB)
         self.assertEquals(dev.device_type, zmq.FORWARDER)
         self.assertEquals(dev.daemon, True)
-        # del a
         del dev
     
     def test_tsdevice_attributes(self):
@@ -70,45 +65,53 @@ class TestDevice(BaseZMQTestCase):
         dev.connect_in('tcp://127.0.0.1:%i'%port)
         dev.start()
         time.sleep(.25)
-        msg = 'hello'.encode()
+        msg = asbytes('hello')
         req.send(msg)
         self.assertEquals(msg, req.recv())
         del dev
-        del req
+        req.close()
         dev = devices.ThreadDevice(zmq.FORWARDER, zmq.REP, -1)
         req = self.context.socket(zmq.REQ)
         port = req.bind_to_random_port('tcp://127.0.0.1')
         dev.connect_out('tcp://127.0.0.1:%i'%port)
         dev.start()
         time.sleep(.25)
-        msg = 'hello again'.encode()
+        msg = asbytes('hello again')
         req.send(msg)
         self.assertEquals(msg, req.recv())
         del dev
-        del req
+        req.close()
         
     def test_single_socket_forwarder_bind(self):
         dev = devices.ThreadDevice(zmq.FORWARDER, zmq.REP, -1)
+        # select random port:
+        binder = self.context.socket(zmq.REQ)
+        port = binder.bind_to_random_port('tcp://127.0.0.1')
+        binder.close()
+        time.sleep(0.1)
         req = self.context.socket(zmq.REQ)
-        port = 12345
         req.connect('tcp://127.0.0.1:%i'%port)
         dev.bind_in('tcp://127.0.0.1:%i'%port)
         dev.start()
         time.sleep(.25)
-        msg = 'hello'.encode()
+        msg = asbytes('hello')
         req.send(msg)
         self.assertEquals(msg, req.recv())
         del dev
-        del req
+        req.close()
         dev = devices.ThreadDevice(zmq.FORWARDER, zmq.REP, -1)
+        # select random port:
+        binder = self.context.socket(zmq.REQ)
+        port = binder.bind_to_random_port('tcp://127.0.0.1')
+        binder.close()
+        time.sleep(0.1)
         req = self.context.socket(zmq.REQ)
-        port = 12346
         req.connect('tcp://127.0.0.1:%i'%port)
         dev.bind_in('tcp://127.0.0.1:%i'%port)
         dev.start()
         time.sleep(.25)
-        msg = 'hello again'.encode()
+        msg = asbytes('hello again')
         req.send(msg)
         self.assertEquals(msg, req.recv())
         del dev
-        del req
+        req.close()

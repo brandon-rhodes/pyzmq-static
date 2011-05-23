@@ -3,8 +3,8 @@ with a bundled copy of ØMQ
 so that you do not have to install ØMQ separately on your system.
 This version combines:
 
-* ØMQ 2.1.4 — http://www.zeromq.org/
-* PyZMQ 2.1.1 — http://pypi.python.org/pypi/pyzmq/
+* ØMQ 2.1.7 — http://www.zeromq.org/
+* PyZMQ 2.1.7 — http://pypi.python.org/pypi/pyzmq/
 
 On Linux and MacOS systems (but not on Windows or FreeBSD),
 the ``libuuid`` library code is also compiled in:
@@ -29,6 +29,7 @@ and the free Microsoft Visual C++ 2008 Express for Windows machines).
 Changelog
 ---------
 
+| 2011-05-22 — 2.1.7 — ØMQ and PyZMQ 2.1.7.
 | 2011-04-02 — 2.1.4 — ØMQ 2.1.4; PyZMQ 2.1.1; util-linux-ng 2.19.
 | 2010-11-17 — 2.0.10 — ØMQ 2.0.10; FreeBSD support.
 | 2010-09-27 — 2.0.8 — Mac OS X support.

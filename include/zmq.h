@@ -55,7 +55,7 @@ extern "C" {
 /*  Version macros for compile-time API version detection                     */
 #define ZMQ_VERSION_MAJOR 2
 #define ZMQ_VERSION_MINOR 1
-#define ZMQ_VERSION_PATCH 4
+#define ZMQ_VERSION_PATCH 7
 
 #define ZMQ_MAKE_VERSION(major, minor, patch) \
     ((major) * 10000 + (minor) * 100 + (patch))
@@ -98,6 +98,9 @@ ZMQ_EXPORT void zmq_version (int *major, int *minor, int *patch);
 #ifndef EINPROGRESS
 #define EINPROGRESS (ZMQ_HAUSNUMERO + 8)
 #endif
+#ifndef ENOTSOCK
+#define ENOTSOCK (ZMQ_HAUSNUMERO + 9)
+#endif
 
 /*  Native 0MQ error codes.                                                   */
 #define EFSM (ZMQ_HAUSNUMERO + 51)
@@ -134,6 +137,7 @@ ZMQ_EXPORT const char *zmq_strerror (int errnum);
 /*  allows us to pack the stucture tigher and thus improve performance.       */
 #define ZMQ_MSG_MORE 1
 #define ZMQ_MSG_SHARED 128
+#define ZMQ_MSG_MASK 129 /* Merges all the flags */
 
 /*  A message. Note that 'content' is not a pointer to the raw data.          */
 /*  Rather it is pointer to zmq::msg_content_t structure                      */

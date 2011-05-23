@@ -32,7 +32,7 @@ from unittest import TestCase
 
 import zmq
 from zmq.tests import BaseZMQTestCase, SkipTest
-from zmq.utils.strtypes import unicode,bytes
+from zmq.utils.strtypes import unicode,bytes,asbytes
 
 #-----------------------------------------------------------------------------
 # Tests
@@ -40,7 +40,7 @@ from zmq.utils.strtypes import unicode,bytes
 
 # some useful constants:
 
-x = 'x'.encode()
+x = asbytes('x')
 
 try:
     view = memoryview
@@ -69,7 +69,7 @@ class TestMessage(BaseZMQTestCase):
         for i in range(16):
             s = (2**i)*x
             m = zmq.Message(s)
-            self.assertEquals(s, str(m).encode())
+            self.assertEquals(s, asbytes(m))
 
     def test_bytes(self):
         """Test the Message.bytes property."""
@@ -119,8 +119,8 @@ class TestMessage(BaseZMQTestCase):
             rc += view_rc
             self.assertEquals(grc(s), rc)
 
-            self.assertEquals(s, str(m).encode())
-            self.assertEquals(s, str(m2).encode())
+            self.assertEquals(s, asbytes(str(m)))
+            self.assertEquals(s, asbytes(m2))
             self.assertEquals(s, m.bytes)
             # self.assert_(s is str(m))
             # self.assert_(s is str(m2))
@@ -151,8 +151,8 @@ class TestMessage(BaseZMQTestCase):
             b = m.buffer
             rc += view_rc
             self.assertEquals(grc(s), rc)
-            self.assertEquals(s, str(m).encode())
-            self.assertEquals(s, str(m2).encode())
+            self.assertEquals(s, asbytes(str(m)))
+            self.assertEquals(s, asbytes(m2))
             self.assertEquals(s, m2.bytes)
             self.assertEquals(s, m.bytes)
             # self.assert_(s is str(m))
@@ -171,7 +171,7 @@ class TestMessage(BaseZMQTestCase):
             del s
     
     def test_tracker(self):
-        m = zmq.Message('asdf'.encode(), track=True)
+        m = zmq.Message(asbytes('asdf'), track=True)
         self.assertFalse(m.done)
         pm = zmq.MessageTracker(m)
         self.assertFalse(pm.done)
@@ -179,15 +179,15 @@ class TestMessage(BaseZMQTestCase):
         self.assertTrue(pm.done)
     
     def test_no_tracker(self):
-        m = zmq.Message('asdf'.encode(), track=False)
+        m = zmq.Message(asbytes('asdf'), track=False)
         self.assertRaises(ValueError, getattr, m, 'done')
         m2 = copy.copy(m)
         self.assertRaises(ValueError, getattr, m2, 'done')
         self.assertRaises(ValueError, zmq.MessageTracker, m)
     
     def test_multi_tracker(self):
-        m = zmq.Message('asdf'.encode(), track=True)
-        m2 = zmq.Message('whoda'.encode(), track=True)
+        m = zmq.Message(asbytes('asdf'), track=True)
+        m2 = zmq.Message(asbytes('whoda'), track=True)
         mt = zmq.MessageTracker(m,m2)
         self.assertFalse(m.done)
         self.assertFalse(mt.done)
@@ -229,7 +229,7 @@ class TestMessage(BaseZMQTestCase):
     def test_multisend(self):
         """ensure that a message remains intact after multiple sends"""
         a,b = self.create_bound_pair(zmq.PAIR, zmq.PAIR)
-        s = "message".encode()
+        s = asbytes("message")
         m = zmq.Message(s)
         self.assertEquals(s, m.bytes)
         
@@ -256,13 +256,18 @@ class TestMessage(BaseZMQTestCase):
             import numpy
         except ImportError:
             raise SkipTest
-        shapes = map(numpy.random.randint, [2]*5,[16]*5)
+        rand = numpy.random.randint
+        shapes = [ rand(2,16) for i in range(5) ]
         for i in range(1,len(shapes)+1):
             shape = shapes[:i]
             A = numpy.random.random(shape)
             m = zmq.Message(A)
-            self.assertEquals(A.data, m.buffer)
-            B = numpy.frombuffer(m.buffer,dtype=A.dtype).reshape(A.shape)
+            if view.__name__ == 'buffer':
+                self.assertEquals(A.data, m.buffer)
+                B = numpy.frombuffer(m.buffer,dtype=A.dtype).reshape(A.shape)
+            else:
+                self.assertEquals(memoryview(A), m.buffer)
+                B = numpy.array(m.buffer,dtype=A.dtype).reshape(A.shape)
             self.assertEquals((A==B).all(), True)
     
     def test_memoryview(self):
@@ -271,12 +276,35 @@ class TestMessage(BaseZMQTestCase):
         if not (major >= 3 or (major == 2 and minor >= 7)):
             raise SkipTest
 
-        s = 'carrotjuice'.encode()
+        s = asbytes('carrotjuice')
         v = memoryview(s)
         m = zmq.Message(s)
         buf = m.buffer
         s2 = buf.tobytes()
         self.assertEquals(s2,s)
         self.assertEquals(m.bytes,s)
-        
+    
+    def test_noncopying_recv(self):
+        """check for clobbering message buffers"""
+        null = asbytes('\0'*64)
+        sa,sb = self.create_bound_pair(zmq.PAIR, zmq.PAIR)
+        for i in range(32):
+            # try a few times
+            sb.send(null, copy=False)
+            m = sa.recv(copy=False)
+            mb = m.bytes
+            # buf = view(m)
+            buf = m.buffer
+            del m
+            for i in range(5):
+                ff=asbytes('\xff'*(40 + i*10))
+                sb.send(ff, copy=False)
+                m2 = sa.recv(copy=False)
+                if view.__name__ == 'buffer':
+                    b = bytes(buf)
+                else:
+                    b = buf.tobytes()
+                self.assertEquals(b, null)
+                self.assertEquals(mb, null)
+                self.assertEquals(m2.bytes, ff)
 
