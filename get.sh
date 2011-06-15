@@ -33,8 +33,8 @@ tar xvfz tmp/$PYZMQ.tar.gz
 # keep include_linux and include_darwin from one run to the next, since
 # we cannot replace their contents unless we are on that platform.)
 
-rm -rf include include_uuid licenses src src_nt src_uuid zmq
-mkdir  include include_uuid licenses src src_nt src_uuid zmq
+rm -rf include include_uuid licenses src src_uuid zmq
+mkdir  include include_uuid licenses src src_uuid zmq
 
 cp $ZEROMQ/COPYING* \
    licenses
