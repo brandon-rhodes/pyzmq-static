@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-#import setuptools
 import os
 import sys
 from distutils.core import setup, Extension, Command
