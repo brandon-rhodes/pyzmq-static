@@ -71,11 +71,9 @@ cmdclass = {'test':TestCommand}
 #-----------------------------------------------------------------------------
 
 static_sources = glob('src/*')
-libraries = []
 include_dirs = ['include']
 
 if hasattr(sys, 'getwindowsversion'):
-    libraries.extend([ 'rpcrt4', 'ws2_32' ])
     include_dirs.append('include_nt')
 else:
     if sys.platform == 'darwin':
@@ -122,7 +120,10 @@ submodules = dict(
     }
 )
 
-extensions = []
+extensions = [Extension('zmq._zeromq',
+                        sources=static_sources,
+                        include_dirs=include_dirs)]
+
 for submod, packages in submodules.items():
     for pkg in sorted(packages):
         sources = [pjoin('zmq', submod, pkg+'.c')]
@@ -133,15 +134,47 @@ for submod, packages in submodules.items():
         )
         extensions.append(ext)
 
-extensions.append(Extension('zmq._zeromq',
-                            sources=static_sources,
-                            include_dirs=include_dirs))
-
 package_data = {'zmq':['*.pxd'],
                 'zmq.core':['*.pxd'],
                 'zmq.devices':['*.pxd'],
                 'zmq.utils':['*.pxd', '*.h'],
 }
+
+# Visual Studio needs some encouragement to actually compile everything.
+
+if hasattr(sys, 'getwindowsversion'):
+
+    libzmq = extensions[0]
+    other_extensions = extensions[1:]
+
+    # When compiling the C++ code inside of libzmq itself, we want to
+    # avoid "warning C4530: C++ exception handler used, but unwind
+    # semantics are not enabled. Specify /EHsc".
+
+    libzmq.extra_compile_args.append('/EHsc')
+
+    # Because Visual Studio is given the option "/EXPORT:init_zeromq"
+    # when compiling libzmq, we need to provide such a function.
+
+    libzmq.sources.append(r'src_nt\init_zeromq.c')
+
+    # And things like sockets come from libraries that must be named.
+
+    libzmq.libraries.append('rpcrt4')
+    libzmq.libraries.append('ws2_32')
+
+    # Then all of the real extensions need to link against that first
+    # library.
+
+    for other in other_extensions:
+        thisdir = os.path.dirname(__file__)
+        libdir = os.path.join(thisdir, 'build',
+                              'temp.win32-%d.%d' % sys.version_info[:2],
+                              'Release', 'src')
+        other.library_dirs.append(libdir)
+        other.libraries.append('_zeromq')
+
+# The setup() call itself.
 
 long_description = open('README.txt').read().decode('utf-8')
 if sys.version_info < (2, 6):  # work around Python 2.5 UnicodeEncodeError
@@ -151,7 +184,7 @@ else:
     description = u'zmq package that compiles its own ØMQ / 0MQ / ZeroMQ'
 
 setup(name='pyzmq-static',
-      version='2.1.7',
+      version='2.1.7.1',
       description=description,
       long_description=long_description,
       author='Brandon Craig Rhodes',
