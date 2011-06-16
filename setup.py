@@ -120,7 +120,7 @@ submodules = dict(
     }
 )
 
-extensions = [Extension('zmq._zeromq',
+extensions = [Extension('zmq.libzmq',
                         sources=static_sources,
                         include_dirs=include_dirs)]
 
@@ -153,10 +153,10 @@ if hasattr(sys, 'getwindowsversion'):
 
     libzmq.extra_compile_args.append('/EHsc')
 
-    # Because Visual Studio is given the option "/EXPORT:init_zeromq"
-    # when compiling libzmq, we need to provide such a function.
+    # Because Visual Studio is given the option "/EXPORT:initlibzmq"
+    # when compiling libzmq, so we need to provide such a function.
 
-    libzmq.sources.append(r'src_nt\init_zeromq.c')
+    libzmq.sources.append(r'src_nt\initlibzmq.c')
 
     # And things like sockets come from libraries that must be named.
 
@@ -172,7 +172,7 @@ if hasattr(sys, 'getwindowsversion'):
         thisdir = os.path.dirname(__file__)
         libdir = os.path.join(thisdir, 'build', temp, 'Release', 'src')
         other.library_dirs.append(libdir)
-        other.libraries.append('_zeromq')
+        other.libraries.append('libzmq')
 
 # The setup() call itself.
 
