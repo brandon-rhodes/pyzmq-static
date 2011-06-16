@@ -27,15 +27,22 @@ import sys
 import ctypes, os
 here = os.path.dirname(__file__)
 if sys.platform.startswith('win'):
-    library = os.path.join(here, 'libzmq.pyd')
-    libzmq = ctypes.cdll.LoadLibrary(library)
+    # In Windows the library might be a DLL or disguised as a Python
+    # extension.  If we cannot find either, we simply keep going without
+    # complaint, in the hope that the application has loaded it through
+    # some other mechanism.
+    libzmq = os.path.join(here, 'libzmq.dll')
+    if not os.path.exists(libzmq):
+        libzmq = os.path.join(here, 'libzmq.pyd')
+    if os.path.exists(libzmq):
+        ctypes.cdll.LoadLibrary(libzmq)
 else:
     # Under Linux, we cannot use "import" if we need the other extension
     # modules we load to be able to see symbols inside of "libzmq"; so
     # we load the shared library manually, using RTLD_GLOBAL.
-    library = os.path.join(here, 'libzmq.so')
-    libzmq = ctypes.CDLL(library, mode=ctypes.RTLD_GLOBAL)
-del ctypes, os, here, library
+    libzmq = os.path.join(here, 'libzmq.so')
+    ctypes.CDLL(libzmq, mode=ctypes.RTLD_GLOBAL)
+del here, libzmq, ctypes, os
 
 from zmq.utils import initthreads # initialize threads
 initthreads.init_threads()
