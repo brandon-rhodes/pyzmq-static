@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import distutils.util
 import os
 import sys
 from distutils.core import setup, Extension, Command
@@ -165,11 +166,11 @@ if hasattr(sys, 'getwindowsversion'):
     # Then all of the real extensions need to link against that first
     # library.
 
+    plat = distutils.util.get_platform()
+    temp = 'temp.%s-%s' % (plat, sys.version[0:3])
     for other in other_extensions:
         thisdir = os.path.dirname(__file__)
-        libdir = os.path.join(thisdir, 'build',
-                              'temp.win32-%d.%d' % sys.version_info[:2],
-                              'Release', 'src')
+        libdir = os.path.join(thisdir, 'build', temp, 'Release', 'src')
         other.library_dirs.append(libdir)
         other.libraries.append('_zeromq')
 
