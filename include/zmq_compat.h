@@ -12,49 +12,6 @@
 #define _missing (PyErr_SetString(PyExc_NotImplementedError, \
                 "Not available in current zeromq."), -1)
 
-// 2.1.0
-
-#ifndef ZMQ_FD
-    #define ZMQ_FD (-1)
-        
-#endif
-
-#ifndef ZMQ_EVENTS
-                    
-    #define ZMQ_EVENTS (-1)
-#endif
-#ifndef ZMQ_TYPE
-    #define ZMQ_TYPE (-1)
-#endif
-#ifndef ZMQ_LINGER
-    #define ZMQ_LINGER (-1)
-#endif
-#ifndef ZMQ_RECONNECT_IVL
-    #define ZMQ_RECONNECT_IVL (-1)
-#endif
-#ifndef ZMQ_BACKLOG
-    #define ZMQ_BACKLOG (-1)
-#endif
-// 2.1.1
-#ifndef ZMQ_XPUB
-    #define ZMQ_XPUB (-1)
-#endif
-#ifndef ZMQ_XSUB
-    #define ZMQ_XSUB (-1)
-#endif
-#ifndef ZMQ_RECOVERY_IVL_MSEC
-    #define ZMQ_RECOVERY_IVL_MSEC (-1)
-#endif
-#ifndef ZMQ_RECONNECT_IVL_MAX
-    #define ZMQ_RECONNECT_IVL_MAX (-1)
-#endif
-// 2.1.4
-#ifndef ZMQ_DEALER
-    #define ZMQ_DEALER (-1)
-#endif
-#ifndef ZMQ_ROUTER
-    #define ZMQ_ROUTER (-1)
-#endif
 
 // new in 3.0.0
 #ifndef ENOTSOCK
@@ -70,9 +27,24 @@
 #ifndef ZMQ_RCVHWM
     #define ZMQ_RCVHWM (-1)
 #endif
+#ifndef ZMQ_MULTICAST_HOPS
+    #define ZMQ_MULTICAST_HOPS (-1)
+#endif
+#ifndef ZMQ_RCVTIMEO
+    #define ZMQ_RCVTIMEO (-1)
+#endif
+#ifndef ZMQ_SNDTIMEO
+    #define ZMQ_SNDTIMEO (-1)
+#endif
 
 #ifndef ZMQ_DONTWAIT
     #define ZMQ_DONTWAIT (-1)
+#endif
+#ifndef ZMQ_RCVLABEL
+    #define ZMQ_RCVLABEL (-1)
+#endif
+#ifndef ZMQ_SNDLABEL
+    #define ZMQ_SNDLABEL (-1)
 #endif
 
 
@@ -123,6 +95,45 @@
 #endif
 #ifndef ZMQ_QUEUE
     #define ZMQ_QUEUE 3
+#endif
+
+
+// new in 4.0.0
+#ifndef ECANTROUTE
+    #define ECANTROUTE (-1)
+#endif
+
+#ifndef ZMQ_RCVCMD
+    #define ZMQ_RCVCMD (-1)
+#endif
+#ifndef ZMQ_SNDCMD
+    #define ZMQ_SNDCMD (-1)
+#endif
+
+// removed in 4.0.0
+#ifndef ZMQ_XREQ
+    #define ZMQ_XREQ (-1)
+#endif
+#ifndef ZMQ_XREP
+    #define ZMQ_XREP (-1)
+#endif
+#ifndef ZMQ_DEALER
+    #define ZMQ_DEALER (-1)
+#endif
+
+#ifndef ZMQ_IDENTITY
+    #define ZMQ_IDENTITY (-1)
+#endif
+
+// define fd type (from libzmq's fd.hpp)
+#ifdef _WIN32
+  #ifdef _MSC_VER && _MSC_VER <= 1400
+    #define ZMQ_FD_T UINT_PTR
+  #else
+    #define ZMQ_FD_T SOCKET
+  #endif
+#else
+    #define ZMQ_FD_T int
 #endif
 
 // use unambiguous aliases for zmq_send/recv functions

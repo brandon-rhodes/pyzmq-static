@@ -189,10 +189,6 @@ int zmq::xrep_t::xsend (zmq_msg_t *msg_, int flags_)
                     it->second.active = false;
                     more_out = false;
                     current_out = NULL;
-                    rc = zmq_msg_close (&empty);
-                    zmq_assert (rc == 0);
-                    errno = EAGAIN;
-                    return -1;
                 }
                 rc = zmq_msg_close (&empty);
                 zmq_assert (rc == 0);
@@ -222,7 +218,6 @@ int zmq::xrep_t::xsend (zmq_msg_t *msg_, int flags_)
         int rc = zmq_msg_close (msg_);
         zmq_assert (rc == 0);
     }
-
     //  Detach the message from the data buffer.
     int rc = zmq_msg_init (msg_);
     zmq_assert (rc == 0);

@@ -1,5 +1,5 @@
 #
-#    Copyright (c) 2010 Brian E. Granger
+#    Copyright (c) 2010-2011 Brian E. Granger & Min Ragan-Kelley
 #
 #    This file is part of pyzmq.
 #
@@ -22,11 +22,13 @@
 #-----------------------------------------------------------------------------
 
 import sys
+import time
 from threading import Thread
 
 from unittest import TestCase
 
 import zmq
+from zmq.utils import jsonapi
 
 try:
     from unittest import SkipTest
@@ -40,7 +42,7 @@ except ImportError:
 #-----------------------------------------------------------------------------
 # Utilities
 #-----------------------------------------------------------------------------
-if zmq.zmq_version() >= '3.0.0':
+if zmq.zmq_version_info() >= (3,0,0):
     # keep NOBLOCK for tests
     zmq.NOBLOCK = zmq.DONTWAIT
 
@@ -55,17 +57,20 @@ class BaseZMQTestCase(TestCase):
         while self.sockets:
             sock = self.sockets.pop()
             contexts.add(sock.context) # in case additional contexts are created
-            sock.close()
+            sock.close(0)
         for ctx in contexts:
             t = Thread(target=ctx.term)
+            t.daemon = True
             t.start()
             t.join(timeout=2)
             if sys.version[:3] == '2.5':
                 t.is_alive = t.isAlive
             if t.is_alive():
+                # reset Context.instance, so the failure to term doesn't corrupt subsequent tests
+                zmq.core.context._instance = None
                 raise RuntimeError("context could not terminate, open sockets likely remain in test")
 
-    def create_bound_pair(self, type1, type2, interface='tcp://127.0.0.1'):
+    def create_bound_pair(self, type1=zmq.PAIR, type2=zmq.PAIR, interface='tcp://127.0.0.1'):
         """Create a bound socket pair using a random port."""
         s1 = zmq.Socket(self.context, type1)
         s1.setsockopt(zmq.LINGER, 0)
@@ -84,6 +89,8 @@ class BaseZMQTestCase(TestCase):
         return msg3
 
     def ping_pong_json(self, s1, s2, o):
+        if jsonapi.jsonmod is None:
+            raise SkipTest("No json library")
         s1.send_json(o)
         o2 = s2.recv_json()
         s2.send_json(o2)
@@ -106,8 +113,30 @@ class BaseZMQTestCase(TestCase):
 got '%s'" % (zmq.ZMQError(errno), zmq.ZMQError(e.errno)))
         else:
             self.fail("Function did not raise any error")
+    
+    def _select_recv(self, multipart, socket, **kwargs):
+        """call recv[_multipart] in a way that raises if there is nothing to receive"""
+        if zmq.zmq_version_info() >= (3,1,0):
+            # zmq 3.1 has a bug, where poll can return false positives,
+            # so we wait a little bit just in case
+            # See LIBZMQ-280 on JIRA
+            time.sleep(0.1)
         
+        r,w,x = zmq.select([socket], [], [], timeout=5)
+        assert len(r) > 0, "Should have received a message"
+        kwargs['flags'] = zmq.DONTWAIT | kwargs.get('flags', 0)
+        
+        recv = socket.recv_multipart if multipart else socket.recv
+        return recv(**kwargs)
+        
+    def recv(self, socket, **kwargs):
+        """call recv in a way that raises if there is nothing to receive"""
+        return self._select_recv(False, socket, **kwargs)
 
+    def recv_multipart(self, socket, **kwargs):
+        """call recv_multipart in a way that raises if there is nothing to receive"""
+        return self._select_recv(True, socket, **kwargs)
+    
 
 class PollZMQTestCase(BaseZMQTestCase):
     pass

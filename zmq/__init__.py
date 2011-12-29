@@ -1,7 +1,7 @@
 """Python bindings for 0MQ."""
 
 #
-#    Copyright (c) 2010 Brian E. Granger
+#    Copyright (c) 2010-2011 Brian E. Granger & Min Ragan-Kelley
 #
 #    This file is part of pyzmq.
 #
@@ -27,22 +27,12 @@ import sys
 import ctypes, os
 here = os.path.dirname(__file__)
 if sys.platform.startswith('win'):
-    # In Windows the library might be a DLL or disguised as a Python
-    # extension.  If we cannot find either, we simply keep going without
-    # complaint, in the hope that the application has loaded it through
-    # some other mechanism.
-    libzmq = os.path.join(here, 'libzmq.dll')
-    if not os.path.exists(libzmq):
-        libzmq = os.path.join(here, 'libzmq.pyd')
-    if os.path.exists(libzmq):
-        ctypes.cdll.LoadLibrary(libzmq)
+    library = os.path.join(here, '_zeromq.pyd')
+    ctypes.cdll.LoadLibrary(library)
 else:
-    # Under Linux, we cannot use "import" if we need the other extension
-    # modules we load to be able to see symbols inside of "libzmq"; so
-    # we load the shared library manually, using RTLD_GLOBAL.
-    libzmq = os.path.join(here, 'libzmq.so')
-    ctypes.CDLL(libzmq, mode=ctypes.RTLD_GLOBAL)
-del here, libzmq, ctypes, os
+    library = os.path.join(here, "_zeromq.so")
+    _zeromq = ctypes.CDLL(library, mode=ctypes.RTLD_GLOBAL)
+del ctypes, os, here, library
 
 from zmq.utils import initthreads # initialize threads
 initthreads.init_threads()

@@ -1,5 +1,5 @@
 #
-#    Copyright (c) 2010 Brian E. Granger
+#    Copyright (c) 2010-2011 Brian E. Granger & Min Ragan-Kelley
 #
 #    This file is part of pyzmq.
 #
@@ -24,7 +24,7 @@
 import zmq
 from zmq.utils.strtypes import asbytes
 
-from zmq.tests import BaseZMQTestCase
+from zmq.tests import BaseZMQTestCase, SkipTest
 
 #-----------------------------------------------------------------------------
 # Tests
@@ -32,16 +32,23 @@ from zmq.tests import BaseZMQTestCase
 
 class TestMultipart(BaseZMQTestCase):
 
-    def test_xrep_xreq(self):
-        xrep, xreq = self.create_bound_pair(zmq.XREP, zmq.XREQ)
+    def test_router_dealer(self):
+        router, dealer = self.create_bound_pair(zmq.ROUTER, zmq.DEALER)
 
         msg1 = asbytes('message1')
-        xreq.send(msg1)
-        ident = xrep.recv()
-        more = xrep.rcvmore()
+        dealer.send(msg1)
+        ident = self.recv(router)
+        more = router.rcvmore
         self.assertEquals(more, True)
-        msg2 = xrep.recv()
+        msg2 = self.recv(router)
         self.assertEquals(msg1, msg2)
-        more = xrep.rcvmore()
+        more = router.rcvmore
         self.assertEquals(more, False)
+    
+    def test_basic_multipart(self):
+        a,b = self.create_bound_pair(zmq.PAIR, zmq.PAIR)
+        msg = [ asbytes(s) for s in ['hi', 'there', 'b'] ]
+        a.send_multipart(msg)
+        recvd = b.recv_multipart()
+        self.assertEquals(msg, recvd)
 
