@@ -13,10 +13,10 @@
 -    if os.path.exists(libzmq):
 -        ctypes.cdll.LoadLibrary(libzmq)
 -    del here, libzmq, ctypes, os
-+    library = os.path.join(here, '_zeromq.pyd')
++    library = os.path.join(here, 'libzmq.pyd')
 +    ctypes.cdll.LoadLibrary(library)
 +else:
-+    library = os.path.join(here, "_zeromq.so")
++    library = os.path.join(here, "libzmq.so")
 +    _zeromq = ctypes.CDLL(library, mode=ctypes.RTLD_GLOBAL)
 +del ctypes, os, here, library
  
