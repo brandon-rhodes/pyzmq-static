@@ -24,15 +24,13 @@
 #-----------------------------------------------------------------------------
 import sys
 
-import ctypes, os
-here = os.path.dirname(__file__)
 if sys.platform.startswith('win'):
-    library = os.path.join(here, '_zeromq.pyd')
-    ctypes.cdll.LoadLibrary(library)
-else:
-    library = os.path.join(here, "_zeromq.so")
-    _zeromq = ctypes.CDLL(library, mode=ctypes.RTLD_GLOBAL)
-del ctypes, os, here, library
+    import os, ctypes
+    here = os.path.dirname(__file__)
+    libzmq = os.path.join(here, 'libzmq.dll')
+    if os.path.exists(libzmq):
+        ctypes.cdll.LoadLibrary(libzmq)
+    del here, libzmq, ctypes, os
 
 from zmq.utils import initthreads # initialize threads
 initthreads.init_threads()

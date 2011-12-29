@@ -62,7 +62,6 @@ cp $ZEROMQ/builds/msvc/platform.hpp include_nt
 # Patch pyzmq to manually load the 0MQ shared library.
 
 patch -p0 < patch-gen_uuid
-patch -p0 < patch-zmq-init
 
 # Generate platform.hpp from platform.hpp.in so that I can compare it
 # against the cached versions.
