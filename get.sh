@@ -9,15 +9,15 @@ set -e
 cd $(dirname "$0")
 
 UTIL=util-linux-2.19
-ZEROMQ=zeromq-2.1.7
-PYZMQ=pyzmq-2.1.7
+ZEROMQ=zeromq-2.1.11
+PYZMQ=pyzmq-2.1.11
 
 # Download source distributions, or make sure they are up to date.
 
 if [ ! -d tmp ]; then
     mkdir tmp
     cd tmp
-    curl -O "http://www.kernel.org/pub/linux/utils/util-linux-ng/v2.19/$UTIL.tar.gz"
+    curl -O "http://mirror.anl.gov/pub/linux/utils/util-linux-ng/v2.19/$UTIL.tar.gz"
     curl -O "http://download.zeromq.org/$ZEROMQ.tar.gz"
     curl -O "http://pypi.python.org/packages/source/p/pyzmq/$PYZMQ.tar.gz"
     cd ..

@@ -184,7 +184,7 @@ else:
     description = u'zmq package that compiles its own ØMQ / 0MQ / ZeroMQ'
 
 setup(name='pyzmq-static',
-      version='2.1.7.1',
+      version='2.1.11',
       description=description,
       long_description=long_description,
       author='Brandon Craig Rhodes',
