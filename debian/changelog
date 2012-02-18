@@ -2,4 +2,4 @@ pyzmq-static (2.1.11-1) fatbox; urgency=low
 
   * Initial packaging.
 
-   -- David Bishop <david@fatbox.ca>  Sat, 18 Feb 2012 16:18:58 -0500
+ -- David Bishop <david@fatbox.ca>  Sat, 18 Feb 2012 16:18:58 -0500
