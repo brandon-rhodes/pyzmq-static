@@ -10,5 +10,5 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Static compilation of python zmq library
  Script to compile a statically-linked version of the Python "zmq" 
-package with ØMQ and libuuid (on Linux systems) built-in instead 
-of relying on shared libraries.
+ package with ØMQ and libuuid (on Linux systems) built-in instead 
+ of relying on shared libraries.
