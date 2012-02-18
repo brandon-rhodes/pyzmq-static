@@ -2,11 +2,13 @@ Source: pyzmq-static
 Maintainer: David Bishop <david@fatbox.ca>
 Section: misc
 Priority: optional
-Standards-Version: 3.9.2
-Build-Depends: debhelper (>= 8), build-essential, python-dev
+Standards-Version: 3.9.1
+Build-Depends: debhelper (>= 8), python-dev
 
 Package: pyzmq-static
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Static compilation of python zmq library
- Script to compile a statically-linked version of the Python "zmq" package with ØMQ and libuuid (on Linux systems) built-in instead of relying on shared libraries.
+ Script to compile a statically-linked version of the Python "zmq" 
+package with ØMQ and libuuid (on Linux systems) built-in instead 
+of relying on shared libraries.
