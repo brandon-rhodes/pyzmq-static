@@ -16,9 +16,11 @@ and the ØMQ messaging library.
 The official distribution is called **pyzmq** on PyPI,
 and is maintained by Brian E. Granger.
 
-This **pyzmq-static** distribution was created by Brandon Craig Rhodes
+This **pyzmq-static** distribution was created by Brandon Rhodes
 after he became frustrated with having to install both libuuid-dev
 and ZeroMQ itself on every machine where he then wanted to install **pyzmq**.
+It is now maintained by Evan Borgstrom.
+
 Whether you use Linux or Windows,
 this package should download and compile with a quick **pip** **install**
 without requiring any dependencies beyond the normal tools
@@ -40,11 +42,13 @@ Changelog
 Copying
 -------
 
-This package uses a "setup.py" file,
-which Brandon Craig Rhodes happily offers under a BSD license,
-to build a shared library built from three different source distributions.
-To use the result, you must adhere to the licensing terms of all three
-pieces of software, which are as follows:
+The "setup.py" and "get.sh" files that power this package
+are offered under the BSD license.
+They build a shared library
+that includes code from three different pieces of software.
+To use the resulting library,
+you must adhere to the licensing terms of all three projects,
+which are as follows:
 
 * The UUID routines from "util-linux-ng": BSD
 * The "zeromq" source: LGPL
@@ -53,7 +57,7 @@ pieces of software, which are as follows:
 So, okay, those are not very restrictive licensing terms.
 But still.
 See the source files themselves for more information.
-And thanks to Jeff Garbers for helping me get the package
+And thanks to Jeff Garbers for helping us get the package
 working on MacOS X;
 to Tyler Tarabula for the FreeBSD support;
 and to Benjamin RK for helping me rewrite ``setup.py``
@@ -62,15 +66,13 @@ when PyZMQ split from being one C extension to almost a dozen!
 Development
 -----------
 
-The source of **pyzmq-static** lives at Bitbucket:
+The source of **pyzmq-static** lives at GitHub:
 
-http://bitbucket.org/brandon/pyzmq-static
+https://github.com/brandon-rhodes/pyzmq-static
 
-You can report bugs and problems,
-which Bitbucket euphemistically calls "issues",
-here:
+You can report bugs and problems here:
 
-http://bitbucket.org/brandon/pyzmq-static/issues
+https://github.com/brandon-rhodes/pyzmq-static/issues
 
 The development tree is accompanied by a small *get.sh* shell script
 that re-fetches all of the original source distributions
