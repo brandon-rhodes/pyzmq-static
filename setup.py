@@ -176,7 +176,7 @@ if hasattr(sys, 'getwindowsversion'):
 
 # The setup() call itself.
 
-long_description = open('README.txt').read().decode('utf-8')
+long_description = open('README.rst').read().decode('utf-8')
 if sys.version_info < (2, 6):  # work around Python 2.5 UnicodeEncodeError
     description = u'zmq package that compiles its own 0MQ / ZeroMQ'
     long_description = long_description.encode('utf-8')
