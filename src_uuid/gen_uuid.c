@@ -55,6 +55,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <limits.h>
 #include <sys/types.h>
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
@@ -308,6 +309,12 @@ static int get_node_id(unsigned char *node_id)
 /* Assume that the gettimeofday() has microsecond granularity */
 #define MAX_ADJUSTMENT 10
 
+/*
+ * Get clock from global sequence clock counter.
+ *
+ * Return -1 if the clock counter could not be opened/locked (in this case
+ * pseudorandom value is returned in @ret_clock_seq), otherwise return 0.
+ */
 static int get_clock(uint32_t *clock_high, uint32_t *clock_low,
 		     uint16_t *ret_clock_seq, int *num)
 {
@@ -320,26 +327,33 @@ static int get_clock(uint32_t *clock_high, uint32_t *clock_low,
 	uint64_t			clock_reg;
 	mode_t				save_umask;
 	int				len;
+	int				ret = 0;
 
 	if (state_fd == -2) {
 		save_umask = umask(0);
 		state_fd = open("/var/lib/libuuid/clock.txt",
 				O_RDWR|O_CREAT, 0660);
 		(void) umask(save_umask);
-		state_f = fdopen(state_fd, "r+");
-		if (!state_f) {
-			close(state_fd);
-			state_fd = -1;
+		if (state_fd != -1) {
+			state_f = fdopen(state_fd, "r+");
+			if (!state_f) {
+				close(state_fd);
+				state_fd = -1;
+				ret = -1;
+			}
 		}
+		else
+			ret = -1;
 	}
 	if (state_fd >= 0) {
 		rewind(state_f);
 		while (flock(state_fd, LOCK_EX) < 0) {
-			if (errno == EINTR)
+			if ((errno == EAGAIN) || (errno == EINTR))
 				continue;
 			fclose(state_f);
 			close(state_fd);
 			state_fd = -1;
+			ret = -1;
 			break;
 		}
 	}
@@ -394,7 +408,7 @@ try_again:
 		last.tv_usec = last.tv_usec % 1000000;
 	}
 
-	if (state_fd > 0) {
+	if (state_fd >= 0) {
 		rewind(state_f);
 		len = fprintf(state_f,
 			      "clock: %04x tv: %016lu %08lu adj: %08d\n",
@@ -411,7 +425,7 @@ try_again:
 	*clock_high = clock_reg >> 32;
 	*clock_low = clock_reg;
 	*ret_clock_seq = clock_seq;
-	return 0;
+	return ret;
 }
 
 #if defined(HAVE_UUIDD) && defined(HAVE_SYS_UN_H)
@@ -555,12 +569,13 @@ static int get_uuid_via_daemon(int op, uuid_t out, int *num)
 }
 #endif
 
-void uuid__generate_time(uuid_t out, int *num)
+int __uuid_generate_time(uuid_t out, int *num)
 {
 	static unsigned char node_id[6];
 	static int has_init = 0;
 	struct uuid uu;
 	uint32_t	clock_mid;
+	int ret;
 
 	if (!has_init) {
 		if (get_node_id(node_id) <= 0) {
@@ -574,16 +589,24 @@ void uuid__generate_time(uuid_t out, int *num)
 		}
 		has_init = 1;
 	}
-	get_clock(&clock_mid, &uu.time_low, &uu.clock_seq, num);
+	ret = get_clock(&clock_mid, &uu.time_low, &uu.clock_seq, num);
 	uu.clock_seq |= 0x8000;
 	uu.time_mid = (uint16_t) clock_mid;
 	uu.time_hi_and_version = ((clock_mid >> 16) & 0x0FFF) | 0x1000;
 	memcpy(uu.node, node_id, 6);
 	uuid_pack(&uu, out);
+	return ret;
 }
 
-void uuid_generate_time(uuid_t out)
-{
+/*
+ * Generate time-based UUID and store it to @out
+ *
+ * Tries to guarantee uniqueness of the generated UUIDs by obtaining them from the uuidd daemon,
+ * or, if uuidd is not usable, by using the global clock state counter (see get_clock()).
+ * If neither of these is possible (e.g. because of insufficient permissions), it generates
+ * the UUID anyway, but returns -1. Otherwise, returns 0.
+ */
+static int uuid_generate_time_generic(uuid_t out) {
 #ifdef HAVE_TLS
 	THREAD_LOCAL int		num = 0;
 	THREAD_LOCAL struct uuid	uu;
@@ -602,7 +625,7 @@ void uuid_generate_time(uuid_t out)
 			last_time = time(0);
 			uuid_unpack(out, &uu);
 			num--;
-			return;
+			return 0;
 		}
 		num = 0;
 	}
@@ -615,18 +638,34 @@ void uuid_generate_time(uuid_t out)
 		}
 		num--;
 		uuid_pack(&uu, out);
-		return;
+		return 0;
 	}
 #else
 	if (get_uuid_via_daemon(UUIDD_OP_TIME_UUID, out, 0) == 0)
-		return;
+		return 0;
 #endif
 
-	uuid__generate_time(out, 0);
+	return __uuid_generate_time(out, 0);
+}
+
+/*
+ * Generate time-based UUID and store it to @out.
+ *
+ * Discards return value from uuid_generate_time_generic()
+ */
+void uuid_generate_time(uuid_t out)
+{
+	(void)uuid_generate_time_generic(out);
 }
 
 
-void uuid__generate_random(uuid_t out, int *num)
+int uuid_generate_time_safe(uuid_t out)
+{
+	return uuid_generate_time_generic(out);
+}
+
+
+void __uuid_generate_random(uuid_t out, int *num)
 {
 	uuid_t	buf;
 	struct uuid uu;
@@ -654,7 +693,7 @@ void uuid_generate_random(uuid_t out)
 	int	num = 1;
 	/* No real reason to use the daemon for random uuid's -- yet */
 
-	uuid__generate_random(out, &num);
+	__uuid_generate_random(out, &num);
 }
 
 

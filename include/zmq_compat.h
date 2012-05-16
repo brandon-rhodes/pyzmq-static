@@ -1,3 +1,10 @@
+//-----------------------------------------------------------------------------
+//  Copyright (c) 2010-2012 Brian Granger, Min Ragan-Kelley
+//
+//  Distributed under the terms of the New BSD License.  The full license is in
+//  the file COPYING.BSD, distributed as part of this software.
+//-----------------------------------------------------------------------------
+
 #if defined(_MSC_VER)
 #define pyzmq_int64_t __int64
 #else
@@ -12,10 +19,20 @@
 #define _missing (PyErr_SetString(PyExc_NotImplementedError, \
                 "Not available in current zeromq."), -1)
 
+// new in 2.2.0
+#ifndef ZMQ_RCVTIMEO
+    #define ZMQ_RCVTIMEO (-1)
+#endif
+#ifndef ZMQ_SNDTIMEO
+    #define ZMQ_SNDTIMEO (-1)
+#endif
 
 // new in 3.0.0
-#ifndef ENOTSOCK
-    #define ENOTSOCK (-1)
+#ifndef EAFNOSUPPORT
+    #define EAFNOSUPPORT (-1)
+#endif
+#ifndef EHOSTUNREACH
+    #define EHOSTUNREACH (-1)
 #endif
 
 #ifndef ZMQ_MAXMSGSIZE
@@ -30,13 +47,6 @@
 #ifndef ZMQ_MULTICAST_HOPS
     #define ZMQ_MULTICAST_HOPS (-1)
 #endif
-#ifndef ZMQ_RCVTIMEO
-    #define ZMQ_RCVTIMEO (-1)
-#endif
-#ifndef ZMQ_SNDTIMEO
-    #define ZMQ_SNDTIMEO (-1)
-#endif
-
 #ifndef ZMQ_DONTWAIT
     #define ZMQ_DONTWAIT (-1)
 #endif
@@ -45,6 +55,15 @@
 #endif
 #ifndef ZMQ_SNDLABEL
     #define ZMQ_SNDLABEL (-1)
+#endif
+#ifndef ZMQ_IPV4ONLY
+    #define ZMQ_IPV4ONLY (-1)
+#endif
+#ifndef ZMQ_LAST_ENDPOINT
+    #define ZMQ_LAST_ENDPOINT (-1)
+#endif
+#ifndef ZMQ_FAIL_UNROUTABLE
+    #define ZMQ_FAIL_UNROUTABLE (-1)
 #endif
 
 

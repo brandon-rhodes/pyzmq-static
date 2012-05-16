@@ -19,6 +19,9 @@
 /* Define to 1 if you have the `freeifaddrs' function. */
 #define HAVE_FREEIFADDRS 1
 
+/* Define to 1 if you have the `gethrtime' function. */
+/* #undef HAVE_GETHRTIME */
+
 /* Define to 1 if you have the `getifaddrs' function. */
 #define HAVE_GETIFADDRS 1
 
@@ -144,7 +147,7 @@
 #define PACKAGE_NAME "zeromq"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "zeromq 2.1.11"
+#define PACKAGE_STRING "zeromq 2.2.0"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "zeromq"
@@ -153,7 +156,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.1.11"
+#define PACKAGE_VERSION "2.2.0"
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void
@@ -165,7 +168,7 @@
 #define TIME_WITH_SYS_TIME 1
 
 /* Version number of package */
-#define VERSION "2.1.11"
+#define VERSION "2.2.0"
 
 /* Force to use mutexes */
 /* #undef ZMQ_FORCE_MUTEXES */

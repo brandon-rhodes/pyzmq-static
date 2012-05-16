@@ -1,21 +1,11 @@
+#-----------------------------------------------------------------------------
+#  Copyright (c) 2010-2012 Brian Granger, Min Ragan-Kelley
 #
-#    Copyright (c) 2010-2011 Brian E. Granger & Min Ragan-Kelley
+#  This file is part of pyzmq
 #
-#    This file is part of pyzmq.
-#
-#    pyzmq is free software; you can redistribute it and/or modify it under
-#    the terms of the Lesser GNU General Public License as published by
-#    the Free Software Foundation; either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    pyzmq is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    Lesser GNU General Public License for more details.
-#
-#    You should have received a copy of the Lesser GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
+#  Distributed under the terms of the New BSD License.  The full license is in
+#  the file COPYING.BSD, distributed as part of this software.
+#-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -29,6 +19,13 @@ from unittest import TestCase
 
 import zmq
 from zmq.utils import jsonapi
+
+try:
+    import gevent
+    from zmq import green as gzmq
+    have_gevent = True
+except ImportError:
+    have_gevent = False
 
 try:
     from unittest import SkipTest
@@ -47,9 +44,19 @@ if zmq.zmq_version_info() >= (3,0,0):
     zmq.NOBLOCK = zmq.DONTWAIT
 
 class BaseZMQTestCase(TestCase):
-
+    green = False
+    
+    @property
+    def Context(self):
+        if self.green:
+            return gzmq.Context
+        else:
+            return zmq.Context
+    
     def setUp(self):
-        self.context = zmq.Context.instance()
+        if self.green and not have_gevent:
+                raise SkipTest("requires gevent")
+        self.context = self.Context.instance()
         self.sockets = []
     
     def tearDown(self):
@@ -63,8 +70,6 @@ class BaseZMQTestCase(TestCase):
             t.daemon = True
             t.start()
             t.join(timeout=2)
-            if sys.version[:3] == '2.5':
-                t.is_alive = t.isAlive
             if t.is_alive():
                 # reset Context.instance, so the failure to term doesn't corrupt subsequent tests
                 zmq.core.context._instance = None
@@ -72,10 +77,10 @@ class BaseZMQTestCase(TestCase):
 
     def create_bound_pair(self, type1=zmq.PAIR, type2=zmq.PAIR, interface='tcp://127.0.0.1'):
         """Create a bound socket pair using a random port."""
-        s1 = zmq.Socket(self.context, type1)
+        s1 = self.context.socket(type1)
         s1.setsockopt(zmq.LINGER, 0)
         port = s1.bind_to_random_port(interface)
-        s2 = zmq.Socket(self.context, type2)
+        s2 = self.context.socket(type2)
         s2.setsockopt(zmq.LINGER, 0)
         s2.connect('%s:%s' % (interface, port))
         self.sockets.extend([s1,s2])
@@ -107,8 +112,7 @@ class BaseZMQTestCase(TestCase):
     def assertRaisesErrno(self, errno, func, *args, **kwargs):
         try:
             func(*args, **kwargs)
-        except zmq.ZMQError:
-            e = sys.exc_info()[1]
+        except zmq.ZMQError as e:
             self.assertEqual(e.errno, errno, "wrong error raised, expected '%s' \
 got '%s'" % (zmq.ZMQError(errno), zmq.ZMQError(e.errno)))
         else:
@@ -141,3 +145,40 @@ got '%s'" % (zmq.ZMQError(errno), zmq.ZMQError(e.errno)))
 class PollZMQTestCase(BaseZMQTestCase):
     pass
 
+class GreenTest:
+    """Mixin for making green versions of test classes"""
+    green = True
+    
+    def assertRaisesErrno(self, errno, func, *args, **kwargs):
+        if errno == zmq.EAGAIN:
+            raise SkipTest("Skipping because we're green.")
+        try:
+            func(*args, **kwargs)
+        except zmq.ZMQError:
+            e = sys.exc_info()[1]
+            self.assertEqual(e.errno, errno, "wrong error raised, expected '%s' \
+got '%s'" % (zmq.ZMQError(errno), zmq.ZMQError(e.errno)))
+        else:
+            self.fail("Function did not raise any error")
+
+    def tearDown(self):
+        contexts = set([self.context])
+        while self.sockets:
+            sock = self.sockets.pop()
+            contexts.add(sock.context) # in case additional contexts are created
+            sock.close()
+        try:
+            gevent.joinall([gevent.spawn(ctx.term) for ctx in contexts], timeout=2, raise_error=True)
+        except gevent.Timeout:
+            raise RuntimeError("context could not terminate, open sockets likely remain in test")
+    
+    def skip_green(self):
+        raise SkipTest("Skipping because we are green")
+
+def skip_green(f):
+    def skipping_test(self, *args, **kwargs):
+        if self.green:
+            raise SkipTest("Skipping because we are green")
+        else:
+            return f(self, *args, **kwargs)
+    return skipping_test

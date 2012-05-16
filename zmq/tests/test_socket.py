@@ -1,23 +1,12 @@
-#!/usr/bin/env python
 # -*- coding: utf8 -*-
+#-----------------------------------------------------------------------------
+#  Copyright (c) 2010-2012 Brian Granger, Min Ragan-Kelley
 #
-#    Copyright (c) 2010-2011 Brian E. Granger & Min Ragan-Kelley
+#  This file is part of pyzmq
 #
-#    This file is part of pyzmq.
-#
-#    pyzmq is free software; you can redistribute it and/or modify it under
-#    the terms of the Lesser GNU General Public License as published by
-#    the Free Software Foundation; either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    pyzmq is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    Lesser GNU General Public License for more details.
-#
-#    You should have received a copy of the Lesser GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
+#  Distributed under the terms of the New BSD License.  The full license is in
+#  the file COPYING.BSD, distributed as part of this software.
+#-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -27,8 +16,9 @@ import sys
 import time
 
 import zmq
-from zmq.tests import BaseZMQTestCase, SkipTest
-from zmq.utils.strtypes import bytes, unicode, asbytes
+from zmq.tests import BaseZMQTestCase, SkipTest, have_gevent, GreenTest
+from zmq.utils.strtypes import bytes, unicode
+
 try:
     from queue import Queue
 except:
@@ -41,7 +31,7 @@ except:
 class TestSocket(BaseZMQTestCase):
 
     def test_create(self):
-        ctx = zmq.Context()
+        ctx = self.Context()
         s = ctx.socket(zmq.PUB)
         # Superluminal protocol not yet implemented
         self.assertRaisesErrno(zmq.EPROTONOSUPPORT, s.bind, 'ftl://a')
@@ -111,10 +101,12 @@ class TestSocket(BaseZMQTestCase):
                 backref[value] = name
         for opt in zmq.core.constants.int_sockopts+zmq.core.constants.int64_sockopts:
             sopt = backref[opt]
+            if sopt == 'FAIL_UNROUTABLE':
+                # fail_unroutable is write-only
+                continue
             try:
                 n = p.getsockopt(opt)
-            except zmq.ZMQError:
-                e = sys.exc_info()[1]
+            except zmq.ZMQError as e:
                 errors.append("getsockopt(zmq.%s) raised '%s'."%(sopt, e))
             else:
                 if n > 2**31:
@@ -132,9 +124,9 @@ class TestSocket(BaseZMQTestCase):
         self.assertRaisesErrno(zmq.EINVAL, s.setsockopt, 9999, 5)
         self.assertRaisesErrno(zmq.EINVAL, s.getsockopt, 9999)
         # but only int sockopts are allowed through this way, otherwise raise a TypeError
-        self.assertRaises(TypeError, s.setsockopt, 9999, asbytes("5"))
+        self.assertRaises(TypeError, s.setsockopt, 9999, b"5")
         # some sockopts are valid in general, but not on every socket:
-        self.assertRaisesErrno(zmq.EINVAL, s.setsockopt, zmq.SUBSCRIBE, asbytes('hi'))
+        self.assertRaisesErrno(zmq.EINVAL, s.setsockopt, zmq.SUBSCRIBE, b'hi')
     
     def test_sockopt_roundtrip(self):
         "test set/getsockopt roundtrip."
@@ -143,7 +135,25 @@ class TestSocket(BaseZMQTestCase):
         self.assertEquals(p.getsockopt(zmq.LINGER), -1)
         p.setsockopt(zmq.LINGER, 11)
         self.assertEquals(p.getsockopt(zmq.LINGER), 11)
-        
+    
+    def test_poll(self):
+        """test Socket.poll()"""
+        req, rep = self.create_bound_pair(zmq.REQ, zmq.REP)
+        # default flag is POLLIN, nobody has anything to recv:
+        self.assertEquals(req.poll(0), 0)
+        self.assertEquals(rep.poll(0), 0)
+        self.assertEquals(req.poll(0, zmq.POLLOUT), zmq.POLLOUT)
+        self.assertEquals(rep.poll(0, zmq.POLLOUT), 0)
+        self.assertEquals(req.poll(0, zmq.POLLOUT|zmq.POLLIN), zmq.POLLOUT)
+        self.assertEquals(rep.poll(0, zmq.POLLOUT), 0)
+        req.send('hi')
+        self.assertEquals(req.poll(0), 0)
+        self.assertEquals(rep.poll(1), zmq.POLLIN)
+        self.assertEquals(req.poll(0, zmq.POLLOUT), 0)
+        self.assertEquals(rep.poll(0, zmq.POLLOUT), 0)
+        self.assertEquals(req.poll(0, zmq.POLLOUT|zmq.POLLIN), 0)
+        self.assertEquals(rep.poll(0, zmq.POLLOUT), zmq.POLLIN)
+    
     def test_send_unicode(self):
         "test sending unicode objects"
         a,b = self.create_bound_pair(zmq.PAIR, zmq.PAIR)
@@ -169,15 +179,15 @@ class TestSocket(BaseZMQTestCase):
         a.close()
         iface = "%s:%i"%(addr,port)
         a = self.context.socket(zmq.PAIR)
-        # a.setsockopt(zmq.IDENTITY, asbytes("a"))
+        # a.setsockopt(zmq.IDENTITY, b"a")
         b = self.context.socket(zmq.PAIR)
         self.sockets.extend([a,b])
         a.connect(iface)
         time.sleep(0.1)
-        p1 = a.send(asbytes('something'), copy=False, track=True)
+        p1 = a.send(b'something', copy=False, track=True)
         self.assertTrue(isinstance(p1, zmq.MessageTracker))
         self.assertFalse(p1.done)
-        p2 = a.send_multipart(list(map(asbytes, ['something', 'else'])), copy=False, track=True)
+        p2 = a.send_multipart([b'something', b'else'], copy=False, track=True)
         self.assert_(isinstance(p2, zmq.MessageTracker))
         self.assertEquals(p2.done, False)
         self.assertEquals(p1.done, False)
@@ -185,11 +195,11 @@ class TestSocket(BaseZMQTestCase):
         b.bind(iface)
         msg = b.recv_multipart()
         self.assertEquals(p1.done, True)
-        self.assertEquals(msg, (list(map(asbytes, ['something']))))
+        self.assertEquals(msg, [b'something'])
         msg = b.recv_multipart()
         self.assertEquals(p2.done, True)
-        self.assertEquals(msg, list(map(asbytes, ['something', 'else'])))
-        m = zmq.Message(asbytes("again"), track=True)
+        self.assertEquals(msg, [b'something', b'else'])
+        m = zmq.Frame(b"again", track=True)
         self.assertEquals(m.tracker.done, False)
         p1 = a.send(m, copy=False)
         p2 = a.send(m, copy=False)
@@ -198,10 +208,10 @@ class TestSocket(BaseZMQTestCase):
         self.assertEquals(p2.done, False)
         msg = b.recv_multipart()
         self.assertEquals(m.tracker.done, False)
-        self.assertEquals(msg, list(map(asbytes, ['again'])))
+        self.assertEquals(msg, [b'again'])
         msg = b.recv_multipart()
         self.assertEquals(m.tracker.done, False)
-        self.assertEquals(msg, list(map(asbytes, ['again'])))
+        self.assertEquals(msg, [b'again'])
         self.assertEquals(p1.done, False)
         self.assertEquals(p2.done, False)
         pm = m.tracker
@@ -209,18 +219,18 @@ class TestSocket(BaseZMQTestCase):
         time.sleep(0.1)
         self.assertEquals(p1.done, True)
         self.assertEquals(p2.done, True)
-        m = zmq.Message(asbytes('something'), track=False)
+        m = zmq.Frame(b'something', track=False)
         self.assertRaises(ValueError, a.send, m, copy=False, track=True)
         
 
     def test_close(self):
-        ctx = zmq.Context()
+        ctx = self.Context()
         s = ctx.socket(zmq.PUB)
         s.close()
-        self.assertRaises(zmq.ZMQError, s.bind, asbytes(''))
-        self.assertRaises(zmq.ZMQError, s.connect, asbytes(''))
-        self.assertRaises(zmq.ZMQError, s.setsockopt, zmq.SUBSCRIBE, asbytes(''))
-        self.assertRaises(zmq.ZMQError, s.send, asbytes('asdf'))
+        self.assertRaises(zmq.ZMQError, s.bind, b'')
+        self.assertRaises(zmq.ZMQError, s.connect, b'')
+        self.assertRaises(zmq.ZMQError, s.setsockopt, zmq.SUBSCRIBE, b'')
+        self.assertRaises(zmq.ZMQError, s.send, b'asdf')
         self.assertRaises(zmq.ZMQError, s.recv)
         del ctx
     
@@ -265,7 +275,7 @@ class TestSocket(BaseZMQTestCase):
     
     def test_recv_multipart(self):
         a,b = self.create_bound_pair()
-        msg = asbytes('hi')
+        msg = b'hi'
         for i in range(3):
             a.send(msg)
         time.sleep(0.1)
@@ -274,7 +284,7 @@ class TestSocket(BaseZMQTestCase):
     
     def test_close_after_destroy(self):
         """s.close() after ctx.destroy() should be fine"""
-        ctx = zmq.Context()
+        ctx = self.Context()
         s = ctx.socket(zmq.REP)
         ctx.destroy()
         # reaper is not instantaneous
@@ -289,7 +299,7 @@ class TestSocket(BaseZMQTestCase):
         self.assertEquals(evt, 0)
         evt = a.poll(50, zmq.POLLOUT)
         self.assertEquals(evt, zmq.POLLOUT)
-        msg = asbytes('hi')
+        msg = b'hi'
         a.send(msg)
         evt = b.poll(50)
         self.assertEquals(evt, zmq.POLLIN)
@@ -297,6 +307,10 @@ class TestSocket(BaseZMQTestCase):
         evt = b.poll(50)
         self.assertEquals(evt, 0)
         self.assertEquals(msg2, msg)
-        
+
+
+if have_gevent:
+    class TestSocketGreen(GreenTest, TestSocket):
+        test_bad_attr = GreenTest.skip_green
 
 

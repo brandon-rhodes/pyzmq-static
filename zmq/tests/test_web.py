@@ -1,4 +1,3 @@
-# -*- coding: utf8 -*-
 #-----------------------------------------------------------------------------
 #  Copyright (c) 2010-2012 Brian Granger, Min Ragan-Kelley
 #
@@ -13,26 +12,27 @@
 #-----------------------------------------------------------------------------
 
 import sys
-import time
 
-from unittest import TestCase
+import zmq
+from zmq.tests import BaseZMQTestCase, SkipTest
 
-from zmq import ZMQError, strerror
 
-if sys.version_info[0] >= 3:
-    long = int
+#-----------------------------------------------------------------------------
+# Tests
+#-----------------------------------------------------------------------------
 
-class TestZMQError(TestCase):
+
+class TestZMQWeb(BaseZMQTestCase):
     
-    def test_strerror(self):
-        """test that strerror gets the right type."""
-        for i in range(10):
-            e = strerror(i)
-            self.assertTrue(isinstance(e, str))
+    def setUp(self):
+        try:
+            import tornado
+        except ImportError:
+            raise SkipTest("zmq.web requires tornado")
+        
+        BaseZMQTestCase.setUp(self)
     
-    def test_zmqerror(self):
-        for errno in range(10):
-            e = ZMQError(errno)
-            self.assertEquals(e.errno, errno)
-            self.assertEquals(str(e), strerror(errno))
+    def test_imports(self):
+        """zmq.web is importable"""
+        from zmq import web
 

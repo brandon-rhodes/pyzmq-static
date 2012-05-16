@@ -1,21 +1,11 @@
+#-----------------------------------------------------------------------------
+#  Copyright (c) 2010-2012 Brian Granger, Min Ragan-Kelley
 #
-#    Copyright (c) 2010 Min Ragan-Kelley
+#  This file is part of pyzmq
 #
-#    This file is part of pyzmq.
-#
-#    pyzmq is free software; you can redistribute it and/or modify it under
-#    the terms of the Lesser GNU General Public License as published by
-#    the Free Software Foundation; either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    pyzmq is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    Lesser GNU General Public License for more details.
-#
-#    You should have received a copy of the Lesser GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
+#  Distributed under the terms of the New BSD License.  The full license is in
+#  the file COPYING.BSD, distributed as part of this software.
+#-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -26,7 +16,7 @@ import time
 import zmq
 from zmq import devices
 from zmq.tests import BaseZMQTestCase, SkipTest
-from zmq.utils.strtypes import (bytes,unicode,basestring,asbytes)
+from zmq.utils.strtypes import (bytes,unicode,basestring)
 
 #-----------------------------------------------------------------------------
 # Tests
@@ -65,7 +55,7 @@ class TestDevice(BaseZMQTestCase):
         dev.connect_in('tcp://127.0.0.1:%i'%port)
         dev.start()
         time.sleep(.25)
-        msg = asbytes('hello')
+        msg = b'hello'
         req.send(msg)
         self.assertEquals(msg, self.recv(req))
         del dev
@@ -76,7 +66,7 @@ class TestDevice(BaseZMQTestCase):
         dev.connect_out('tcp://127.0.0.1:%i'%port)
         dev.start()
         time.sleep(.25)
-        msg = asbytes('hello again')
+        msg = b'hello again'
         req.send(msg)
         self.assertEquals(msg, self.recv(req))
         del dev
@@ -94,7 +84,7 @@ class TestDevice(BaseZMQTestCase):
         dev.bind_in('tcp://127.0.0.1:%i'%port)
         dev.start()
         time.sleep(.25)
-        msg = asbytes('hello')
+        msg = b'hello'
         req.send(msg)
         self.assertEquals(msg, self.recv(req))
         del dev
@@ -110,7 +100,7 @@ class TestDevice(BaseZMQTestCase):
         dev.bind_in('tcp://127.0.0.1:%i'%port)
         dev.start()
         time.sleep(.25)
-        msg = asbytes('hello again')
+        msg = b'hello again'
         req.send(msg)
         self.assertEquals(msg, self.recv(req))
         del dev
@@ -130,7 +120,7 @@ class TestDevice(BaseZMQTestCase):
         dev.bind_in('tcp://127.0.0.1:%i'%port)
         dev.start()
         time.sleep(.25)
-        msg = asbytes('hello')
+        msg = b'hello'
         req.send(msg, zmq.SNDLABEL)
         req.send(msg, zmq.SNDMORE)
         req.send(msg)

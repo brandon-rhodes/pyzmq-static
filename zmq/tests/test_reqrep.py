@@ -1,21 +1,11 @@
+#-----------------------------------------------------------------------------
+#  Copyright (c) 2010-2012 Brian Granger, Min Ragan-Kelley
 #
-#    Copyright (c) 2010-2011 Brian E. Granger & Min Ragan-Kelley
+#  This file is part of pyzmq
 #
-#    This file is part of pyzmq.
-#
-#    pyzmq is free software; you can redistribute it and/or modify it under
-#    the terms of the Lesser GNU General Public License as published by
-#    the Free Software Foundation; either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    pyzmq is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    Lesser GNU General Public License for more details.
-#
-#    You should have received a copy of the Lesser GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
+#  Distributed under the terms of the New BSD License.  The full license is in
+#  the file COPYING.BSD, distributed as part of this software.
+#-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -24,8 +14,7 @@
 from unittest import TestCase
 
 import zmq
-from zmq.utils.strtypes import asbytes
-from zmq.tests import BaseZMQTestCase
+from zmq.tests import BaseZMQTestCase, have_gevent, GreenTest
 
 #-----------------------------------------------------------------------------
 # Tests
@@ -36,7 +25,7 @@ class TestReqRep(BaseZMQTestCase):
     def test_basic(self):
         s1, s2 = self.create_bound_pair(zmq.REQ, zmq.REP)
 
-        msg1 = asbytes('message 1')
+        msg1 = b'message 1'
         msg2 = self.ping_pong(s1, s2, msg1)
         self.assertEquals(msg1, msg2)
 
@@ -44,7 +33,7 @@ class TestReqRep(BaseZMQTestCase):
         s1, s2 = self.create_bound_pair(zmq.REQ, zmq.REP)
 
         for i in range(10):
-            msg1 = asbytes(i*' ')
+            msg1 = i*b' '
             msg2 = self.ping_pong(s1, s2, msg1)
             self.assertEquals(msg1, msg2)
 
@@ -55,10 +44,10 @@ class TestReqRep(BaseZMQTestCase):
             # this doesn't work on 2.1.8
             for copy in (True,False):
                 self.assertRaisesErrno(zmq.EFSM, s1.recv, copy=copy)
-                self.assertRaisesErrno(zmq.EFSM, s2.send, asbytes('asdf'), copy=copy)
+                self.assertRaisesErrno(zmq.EFSM, s2.send, b'asdf', copy=copy)
 
         # I have to have this or we die on an Abort trap.
-        msg1 = asbytes('asdf')
+        msg1 = b'asdf'
         msg2 = self.ping_pong(s1, s2, msg1)
         self.assertEquals(msg1, msg2)
 
@@ -74,9 +63,12 @@ class TestReqRep(BaseZMQTestCase):
 
     def test_large_msg(self):
         s1, s2 = self.create_bound_pair(zmq.REQ, zmq.REP)
-        msg1 = asbytes(10000*'X')
+        msg1 = 10000*b'X'
 
         for i in range(10):
             msg2 = self.ping_pong(s1, s2, msg1)
             self.assertEquals(msg1, msg2)
 
+if have_gevent:
+    class TestReqRepGreen(GreenTest, TestReqRep):
+        pass

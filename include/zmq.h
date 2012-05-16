@@ -54,8 +54,8 @@ extern "C" {
 
 /*  Version macros for compile-time API version detection                     */
 #define ZMQ_VERSION_MAJOR 2
-#define ZMQ_VERSION_MINOR 1
-#define ZMQ_VERSION_PATCH 11
+#define ZMQ_VERSION_MINOR 2
+#define ZMQ_VERSION_PATCH 0
 
 #define ZMQ_MAKE_VERSION(major, minor, patch) \
     ((major) * 10000 + (minor) * 100 + (patch))
@@ -211,7 +211,9 @@ ZMQ_EXPORT int zmq_term (void *context);
 #define ZMQ_BACKLOG 19
 #define ZMQ_RECOVERY_IVL_MSEC 20   /*  opt. recovery time, reconcile in 3.x   */
 #define ZMQ_RECONNECT_IVL_MAX 21
-    
+#define ZMQ_RCVTIMEO 27
+#define ZMQ_SNDTIMEO 28
+
 /*  Send/recv options.                                                        */
 #define ZMQ_NOBLOCK 1
 #define ZMQ_SNDMORE 2

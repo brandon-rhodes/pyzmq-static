@@ -34,7 +34,7 @@
 #include <sys/time.h>
 #endif
 
-#if defined HAVE_CLOCK_GETTIME
+#if defined HAVE_CLOCK_GETTIME || defined HAVE_GETHRTIME
 #include <time.h>
 #endif
 
@@ -65,13 +65,26 @@ uint64_t zmq::clock_t::now_us ()
     double ticks_div = (double) (ticksPerSecond.QuadPart / 1000000);     
     return (uint64_t) (tick.QuadPart / ticks_div);
 
-#elif defined HAVE_CLOCK_GETTIME
+#elif defined HAVE_CLOCK_GETTIME && defined CLOCK_MONOTONIC
 
     //  Use POSIX clock_gettime function to get precise monotonic time.
     struct timespec tv;
     int rc = clock_gettime (CLOCK_MONOTONIC, &tv);
-    errno_assert (rc == 0);
+        // Fix case where system has clock_gettime but CLOCK_MONOTONIC is not supported.
+        // Done at runtime because a ./configure check is bad for
+        // cross-compiling.
+        if( rc != 0) {
+            //  Use POSIX gettimeofday function to get precise time.
+            struct timeval tv;
+            int rc = gettimeofday (&tv, NULL);
+            errno_assert (rc == 0);
+            return (tv.tv_sec * (uint64_t) 1000000 + tv.tv_usec);
+        }
     return (tv.tv_sec * (uint64_t) 1000000 + tv.tv_nsec / 1000);
+
+#elif defined HAVE_GETHRTIME
+
+    return (gethrtime () / 1000);
 
 #else
 

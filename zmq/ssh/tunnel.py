@@ -16,6 +16,7 @@ Authors
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 import os,sys,atexit
 import socket
@@ -142,7 +143,8 @@ def open_tunnel(addr, server, keyfile=None, password=None, paramiko=None, timeou
     Returns
     -------
     
-    (url, tunnel): The 0MQ url that has been forwarded, and the tunnel object
+    (url, tunnel) : (str, object)
+        The 0MQ url that has been forwarded, and the tunnel object
     """
     
     lport = select_random_ports(1)[0]
@@ -173,27 +175,27 @@ def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, pas
     Parameters
     ----------
     
-        lport : int
-            local port for connecting to the tunnel from this machine.
-        rport : int
-            port on the remote machine to connect to.
-        server : str
-            The ssh server to connect to. The full ssh server string will be parsed.
-            user@server:port
-        remoteip : str [Default: 127.0.0.1]
-            The remote ip, specifying the destination of the tunnel.
-            Default is localhost, which means that the tunnel would redirect
-            localhost:lport on this machine to localhost:rport on the *server*.
+    lport : int
+        local port for connecting to the tunnel from this machine.
+    rport : int
+        port on the remote machine to connect to.
+    server : str
+        The ssh server to connect to. The full ssh server string will be parsed.
+        user@server:port
+    remoteip : str [Default: 127.0.0.1]
+        The remote ip, specifying the destination of the tunnel.
+        Default is localhost, which means that the tunnel would redirect
+        localhost:lport on this machine to localhost:rport on the *server*.
         
-        keyfile : str; path to public key file
-            This specifies a key to be used in ssh login, default None.
-            Regular default ssh keys will be used without specifying this argument.
-        password : str; 
-            Your ssh password to the ssh server. Note that if this is left None,
-            you will be prompted for it if passwordless key based login is unavailable.
-        timeout : int [default: 60]
-            The time (in seconds) after which no activity will result in the tunnel
-            closing.  This prevents orphaned tunnels from running forever.
+    keyfile : str; path to public key file
+        This specifies a key to be used in ssh login, default None.
+        Regular default ssh keys will be used without specifying this argument.
+    password : str; 
+        Your ssh password to the ssh server. Note that if this is left None,
+        you will be prompted for it if passwordless key based login is unavailable.
+    timeout : int [default: 60]
+        The time (in seconds) after which no activity will result in the tunnel
+        closing.  This prevents orphaned tunnels from running forever.
     """
     if pexpect is None:
         raise ImportError("pexpect unavailable, use paramiko_tunnel")
@@ -210,9 +212,9 @@ def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, pas
             continue
         except pexpect.EOF:
             if tunnel.exitstatus:
-                print (tunnel.exitstatus)
-                print (tunnel.before)
-                print (tunnel.after)
+                print(tunnel.exitstatus)
+                print(tunnel.before)
+                print(tunnel.after)
                 raise RuntimeError("tunnel '%s' failed to start"%(cmd))
             else:
                 return tunnel.pid
@@ -254,27 +256,27 @@ def paramiko_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, pa
     Parameters
     ----------
     
-        lport : int
-            local port for connecting to the tunnel from this machine.
-        rport : int
-            port on the remote machine to connect to.
-        server : str
-            The ssh server to connect to. The full ssh server string will be parsed.
-            user@server:port
-        remoteip : str [Default: 127.0.0.1]
-            The remote ip, specifying the destination of the tunnel.
-            Default is localhost, which means that the tunnel would redirect
-            localhost:lport on this machine to localhost:rport on the *server*.
+    lport : int
+        local port for connecting to the tunnel from this machine.
+    rport : int
+        port on the remote machine to connect to.
+    server : str
+        The ssh server to connect to. The full ssh server string will be parsed.
+        user@server:port
+    remoteip : str [Default: 127.0.0.1]
+        The remote ip, specifying the destination of the tunnel.
+        Default is localhost, which means that the tunnel would redirect
+        localhost:lport on this machine to localhost:rport on the *server*.
         
-        keyfile : str; path to public key file
-            This specifies a key to be used in ssh login, default None.
-            Regular default ssh keys will be used without specifying this argument.
-        password : str; 
-            Your ssh password to the ssh server. Note that if this is left None,
-            you will be prompted for it if passwordless key based login is unavailable.
-        timeout : int [default: 60]
-            The time (in seconds) after which no activity will result in the tunnel
-            closing.  This prevents orphaned tunnels from running forever.
+    keyfile : str; path to public key file
+        This specifies a key to be used in ssh login, default None.
+        Regular default ssh keys will be used without specifying this argument.
+    password : str; 
+        Your ssh password to the ssh server. Note that if this is left None,
+        you will be prompted for it if passwordless key based login is unavailable.
+    timeout : int [default: 60]
+        The time (in seconds) after which no activity will result in the tunnel
+        closing.  This prevents orphaned tunnels from running forever.
     
     """
     try:
@@ -318,21 +320,19 @@ def _paramiko_tunnel(lport, rport, server, remoteip, keyfile=None, password=None
 #            client.connect(server, port, username=username, password=password)
 #        else:
 #            raise
-    except Exception:
-        e = sys.exc_info()[1]
-        print ('*** Failed to connect to %s:%d: %r' % (server, port, e))
+    except Exception as e:
+        print('*** Failed to connect to %s:%d: %r' % (server, port, e))
         sys.exit(1)
 
-    # print ('Now forwarding port %d to %s:%d ...' % (lport, server, rport))
+    # print('Now forwarding port %d to %s:%d ...' % (lport, server, rport))
 
     try:
         forward_tunnel(lport, remoteip, rport, client.get_transport())
     except KeyboardInterrupt:
-        print ('SIGINT: Port forwarding stopped cleanly')
+        print('SIGINT: Port forwarding stopped cleanly')
         sys.exit(0)
-    except Exception:
-        e = sys.exc_info()[1]
-        print ("Port forwarding stopped uncleanly: %s"%e)
+    except Exception as e:
+        print("Port forwarding stopped uncleanly: %s"%e)
         sys.exit(255)
 
 if sys.platform == 'win32':

@@ -1,21 +1,11 @@
+#-----------------------------------------------------------------------------
+#  Copyright (c) 2010-2012 Brian Granger, Min Ragan-Kelley
 #
-#    Copyright (c) 2010 Min Ragan-Kelley
+#  This file is part of pyzmq
 #
-#    This file is part of pyzmq.
-#
-#    pyzmq is free software; you can redistribute it and/or modify it under
-#    the terms of the Lesser GNU General Public License as published by
-#    the Free Software Foundation; either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    pyzmq is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    Lesser GNU General Public License for more details.
-#
-#    You should have received a copy of the Lesser GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
+#  Distributed under the terms of the New BSD License.  The full license is in
+#  the file COPYING.BSD, distributed as part of this software.
+#-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -28,7 +18,7 @@ import threading
 import zmq
 from zmq.tests import BaseZMQTestCase
 from zmq.eventloop import ioloop
-from zmq.utils.strtypes import asbytes as b
+
 
 #-----------------------------------------------------------------------------
 # Tests
@@ -101,7 +91,7 @@ class TestIOLoop(BaseZMQTestCase):
         self.assertEquals(events.get(rep), None)
         
         poller.register(rep, ioloop.IOLoop.READ)
-        req.send(b('hi'))
+        req.send(b'hi')
         events = dict(poller.poll(1))
         self.assertEquals(events.get(rep), ioloop.IOLoop.READ)
         self.assertEquals(events.get(req), None)

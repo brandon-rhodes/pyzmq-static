@@ -1,3 +1,4 @@
+#------------------------------------------------------------------------------
 #
 # This file is adapted from a paramiko demo, and thus licensed under LGPL 2.1.
 # Original Copyright (C) 2003-2007  Robey Pointer <robeypointer@gmail.com>
@@ -16,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Paramiko; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA.
+#------------------------------------------------------------------------------
 
 """
 Sample script showing how to do local port forwarding over paramiko.
@@ -44,8 +46,7 @@ class Handler (SocketServer.BaseRequestHandler):
             chan = self.ssh_transport.open_channel('direct-tcpip',
                                                    (self.chain_host, self.chain_port),
                                                    self.request.getpeername())
-        except Exception:
-            e = sys.exc_info()[1]
+        except Exception as e:
             logger.debug('Incoming request to %s:%d failed: %s' % (self.chain_host,
                                                               self.chain_port,
                                                               repr(e)))

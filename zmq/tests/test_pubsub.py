@@ -1,21 +1,11 @@
+#-----------------------------------------------------------------------------
+#  Copyright (c) 2010-2012 Brian Granger, Min Ragan-Kelley
 #
-#    Copyright (c) 2010-2011 Brian E. Granger & Min Ragan-Kelley
+#  This file is part of pyzmq
 #
-#    This file is part of pyzmq.
-#
-#    pyzmq is free software; you can redistribute it and/or modify it under
-#    the terms of the Lesser GNU General Public License as published by
-#    the Free Software Foundation; either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    pyzmq is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    Lesser GNU General Public License for more details.
-#
-#    You should have received a copy of the Lesser GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
+#  Distributed under the terms of the New BSD License.  The full license is in
+#  the file COPYING.BSD, distributed as part of this software.
+#-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -25,8 +15,8 @@ import time
 from unittest import TestCase
 
 import zmq
-from zmq.utils.strtypes import asbytes
-from zmq.tests import BaseZMQTestCase
+
+from zmq.tests import BaseZMQTestCase, have_gevent, GreenTest
 
 #-----------------------------------------------------------------------------
 # Tests
@@ -39,22 +29,25 @@ class TestPubSub(BaseZMQTestCase):
     # We are disabling this test while an issue is being resolved.
     def test_basic(self):
         s1, s2 = self.create_bound_pair(zmq.PUB, zmq.SUB)
-        s2.setsockopt(zmq.SUBSCRIBE,asbytes(''))
+        s2.setsockopt(zmq.SUBSCRIBE,b'')
         time.sleep(0.1)
-        msg1 = asbytes('message')
+        msg1 = b'message'
         s1.send(msg1)
         msg2 = s2.recv()  # This is blocking!
         self.assertEquals(msg1, msg2)
 
     def test_topic(self):
         s1, s2 = self.create_bound_pair(zmq.PUB, zmq.SUB)
-        s2.setsockopt(zmq.SUBSCRIBE, asbytes('x'))
+        s2.setsockopt(zmq.SUBSCRIBE, b'x')
         time.sleep(0.1)
-        msg1 = asbytes('message')
+        msg1 = b'message'
         s1.send(msg1)
         self.assertRaisesErrno(zmq.EAGAIN, s2.recv, zmq.NOBLOCK)
-        msg1 = asbytes('xmessage')
+        msg1 = b'xmessage'
         s1.send(msg1)
         msg2 = s2.recv()
         self.assertEquals(msg1, msg2)
 
+if have_gevent:
+    class TestPubSubGreen(GreenTest, TestPubSub):
+        pass
