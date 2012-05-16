@@ -1,3 +1,4 @@
+include README.rst
 include include/*
 include include_*/*
 include licenses/*
