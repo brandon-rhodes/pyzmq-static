@@ -1,0 +1,55 @@
+pyzmq-static version 2.2.0
+Release Date: TBD
+
+* Upgrade zmq & pyzmq to version 2.2.0 
+
+----
+
+pyzmq-static version 2.1.11.2
+Release Date: 2012.05.16
+
+* Upgrade zmq & pyzmq to version 2.1.11
+* Fixed [GH-1] - README.rst wasn't in the MANIFEST
+* Evan Borgstrom took over maintainership
+
+----
+
+pyzmq-static version 2.1.7.1
+Release Date: 2011.06.15
+
+* Fixed compilation under Windows
+
+----
+
+pyzmq-static version 2.1.7
+Release Date: 2011.05.22
+
+* Upgrade zmq & pyzmq to 2.1.7
+
+----
+
+pyzmq-static version 2.1.4
+Release Date: 2011.04.02
+
+* ØMQ 2.1.4; PyZMQ 2.1.1; util-linux-ng 2.19.
+
+----
+
+pyzmq-static version 2.0.10
+Release Date: 2010.11.17
+
+* ØMQ 2.0.10; FreeBSD support.
+
+----
+
+pyzmq-static version 2.0.8
+Release Date: 2010.09.27
+
+* Mac OS X support.
+
+----
+
+pyzmq-static version 2.0.7a
+Release Date: 2010.09.15
+
+* World debut!
