@@ -70,6 +70,7 @@ Thanks
 * Tyler Tarabula for the FreeBSD support
 * Benjamin RK for help rewriting `setup.py` when PyZMQ split from being
   one C extension to almost a dozen!
+* David Bishop for the Debian packaging files
 
 Development
 -----------
