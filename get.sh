@@ -8,18 +8,18 @@ set -e
 
 cd $(dirname "$0")
 
-UTIL=util-linux-2.19
-ZEROMQ=zeromq-2.1.11
-PYZMQ=pyzmq-2.1.11
+UTIL=util-linux-2.21
+ZEROMQ=zeromq-2.2.0
+PYZMQ=pyzmq-2.2.0
 
 # Download source distributions, or make sure they are up to date.
 
 if [ ! -d tmp ]; then
     mkdir tmp
     cd tmp
-    curl -O "http://mirror.anl.gov/pub/linux/utils/util-linux-ng/v2.19/$UTIL.tar.gz"
-    curl -O "http://download.zeromq.org/$ZEROMQ.tar.gz"
-    curl -O "http://pypi.python.org/packages/source/p/pyzmq/$PYZMQ.tar.gz"
+    curl -L -O "http://mirror.anl.gov/pub/linux/utils/util-linux/v2.21/$UTIL.tar.gz"
+    curl -L -O "http://download.zeromq.org/$ZEROMQ.tar.gz"
+    curl -L -O "https://github.com/zeromq/pyzmq/downloads/$PYZMQ.tar.gz"
     cd ..
 fi
 
@@ -41,7 +41,8 @@ cp $ZEROMQ/COPYING* \
 
 cp $ZEROMQ/src/*.cpp \
    src
-cp $UTIL/shlibs/uuid/src/*.c \
+
+cp $UTIL/libuuid/src/*.c \
    src_uuid
 rm src_uuid/gen_uuid_nt.c
 
@@ -51,8 +52,8 @@ cp $ZEROMQ/include/*.h* \
    include
 
 mkdir include_uuid/uuid
-cp $UTIL/shlibs/uuid/src/*.h include_uuid      # where uuid expects it
-cp $UTIL/shlibs/uuid/src/*.h include_uuid/uuid # where ZeroMQ expects it
+cp $UTIL/libuuid/src/*.h include_uuid      # where uuid expects it
+cp $UTIL/libuuid/src/*.h include_uuid/uuid # where ZeroMQ expects it
 
 (cd $PYZMQ/zmq; tar cf - *.py */*.py */*.c) | (cd zmq; tar xf -)
 
