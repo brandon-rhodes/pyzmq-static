@@ -1,8 +1,0 @@
-^MANIFEST$
-^build$
-^dist$
-\.egg-info$
-^pyzmq-[\d.]+$
-^util-linux-[\d.]+$
-^tmp$
-^zeromq-[\d.]+$
