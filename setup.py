@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import os
 from distutils.core import setup
 
-long_description = open('README.rst').read().decode('utf-8')
+long_description = open(os.path.join(os.path.dirname(__file__), 'README.rst')
+                        ).read().decode('utf-8')
 description = u'Obsolete fork of pyzmq'
 
 setup(name='pyzmq-static',
@@ -15,9 +17,8 @@ setup(name='pyzmq-static',
       maintainer_email='evan@fatbox.ca',
       url='https://github.com/zeromq/pyzmq',
 
-      # Should we release a 2.2 tarball consisting only of the README
-      # and the following requirement, so that users get automatically
-      # migrated over if they did not pin their pyzmq-static version?
-      #
-      # install_requires = ['pyzmq'],
+      # Keep people working who depend simply upon 'pyzmq-static'
+      # without any version number:
+
+      install_requires = ['pyzmq'],
       )
